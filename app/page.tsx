@@ -1,8 +1,11 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
 import { FeatureCard } from '@/components/ui/feature-card'
 import { Badge } from '@/components/ui/badge'
 import { ArrowRight, Code, Zap, Shield, Users, CreditCard, Banknote, LinkIcon, Building2, FormInput, BookOpen, TestTube, Webhook } from 'lucide-react'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 const developerQuotes = [
   {
@@ -88,57 +91,109 @@ export default function HomePage() {
   return (
     <main className="flex-1">
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 bg-gradient-to-br from-background to-muted/30">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative py-20 md:py-28 bg-gradient-to-br from-background via-muted/20 to-background overflow-hidden">
+        {/* Background animations */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-blue-400 to-purple-600 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse-slow" />
+        <div className="absolute top-40 right-10 w-72 h-72 bg-gradient-to-r from-purple-400 to-pink-600 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse-slow animate-delay-200" />
+        
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <Badge variant="outline" className="mb-6">
+            <Badge 
+              variant="outline" 
+              className="mb-6 animate-fadeInDown border-primary/20 bg-primary/5 hover-glow cursor-default"
+            >
               🚀 Now supporting UPI, Cards, Wallets & More
             </Badge>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl animate-fadeInUp">
               Build Powerful
-              <span className="gradient-text block mt-2">Payment Solutions</span>
+              <span className="gradient-text block mt-2 animate-morphGradient bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800">Payment Solutions</span>
             </h1>
-            <p className="mt-6 text-xl text-muted-foreground max-w-3xl mx-auto leading-8">
+            <p className="mt-6 text-xl text-muted-foreground max-w-3xl mx-auto leading-8 animate-fadeInUp animate-delay-200">
               Complete payment infrastructure for developers. Integrate SabPaisa's robust APIs to accept payments, manage subscriptions, and scale your business with confidence.
             </p>
-            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="text-lg px-8 py-3">
-                <Link href="/docs/getting-started">
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center animate-fadeInUp animate-delay-300">
+              <Button 
+                asChild 
+                size="xl" 
+                variant="gradient"
+                className="text-lg px-8 py-4 shadow-2xl"
+              >
+                <Link href="/docs/getting-started" className="flex items-center justify-center gap-2">
                   Start Building
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="h-5 w-5" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="text-lg px-8 py-3">
-                <Link href="/playground">
+              <Button 
+                asChild 
+                variant="outline" 
+                size="xl" 
+                className="text-lg px-8 py-4 hover:border-primary/50 hover:bg-primary/5"
+              >
+                <Link href="/playground" className="flex items-center justify-center gap-2">
+                  <Code className="h-5 w-5" />
                   Try API Playground
-                  <Code className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
+            </div>
+            
+            {/* Floating elements */}
+            <div className="absolute top-32 left-1/4 animate-bounce-slow animate-delay-500">
+              <Zap className="h-6 w-6 text-primary/30" />
+            </div>
+            <div className="absolute top-48 right-1/4 animate-bounce-slow animate-delay-300">
+              <Shield className="h-6 w-6 text-primary/30" />
             </div>
           </div>
         </div>
       </section>
 
       {/* Developer Quotes Section */}
-      <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Trusted by Developers</h2>
+      <section className="py-16 bg-gradient-to-r from-muted/20 via-muted/30 to-muted/20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-dots-pattern opacity-5" />
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-12 animate-fadeInUp">
+            <h2 className="text-3xl font-bold mb-4 gradient-text bg-gradient-to-r from-foreground to-muted-foreground">Trusted by Developers</h2>
             <p className="text-muted-foreground">What developers are saying about SabPaisa</p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {developerQuotes.map((quote, index) => (
-              <div key={index} className="bg-background p-6 rounded-lg border shadow-sm">
-                <p className="text-foreground mb-4 italic">"{quote.quote}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+              <div 
+                key={index} 
+                className={cn(
+                  "bg-background/80 backdrop-blur-sm p-6 rounded-xl border shadow-lg",
+                  "hover-lift transition-all duration-500 group",
+                  "animate-fadeInUp"
+                )}
+                style={{ animationDelay: `${(index + 1) * 150}ms` }}
+              >
+                <div className="relative">
+                  <div className="absolute -top-2 -left-2 text-6xl text-primary/10 font-serif">"</div>
+                  <p className="text-foreground mb-6 italic relative z-10 group-hover:text-primary/80 transition-colors duration-300">
+                    {quote.quote}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className={cn(
+                    "w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full",
+                    "flex items-center justify-center text-white font-semibold text-lg",
+                    "group-hover:scale-110 transition-transform duration-300",
+                    "shadow-lg group-hover:shadow-xl"
+                  )}>
                     {quote.author.charAt(0)}
                   </div>
                   <div>
-                    <p className="font-semibold">{quote.author}</p>
-                    <p className="text-sm text-muted-foreground">{quote.role} at {quote.company}</p>
+                    <p className="font-semibold text-base group-hover:text-primary transition-colors duration-300">
+                      {quote.author}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {quote.role} at <span className="font-medium">{quote.company}</span>
+                    </p>
                   </div>
                 </div>
+                
+                {/* Quote decoration */}
+                <div className="absolute bottom-2 right-4 text-4xl text-primary/5 font-serif group-hover:text-primary/10 transition-colors duration-300">"</div>
               </div>
             ))}
           </div>
@@ -164,6 +219,10 @@ export default function HomePage() {
                 href={product.href}
                 badge={product.badge}
                 badgeVariant="secondary"
+                animated={true}
+                glowEffect={true}
+                featured={index === 0} // Make Payment Gateway featured
+                delay={index * 100}
               />
             ))}
           </div>
@@ -185,6 +244,9 @@ export default function HomePage() {
                 description={action.description}
                 icon={action.icon}
                 href={action.href}
+                animated={true}
+                glowEffect={true}
+                delay={index * 150}
               />
             ))}
           </div>

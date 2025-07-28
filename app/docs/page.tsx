@@ -1,19 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { FeatureCard } from '@/components/ui/feature-card'
-import { 
-  Book, 
-  CreditCard, 
-  Banknote, 
-  LinkIcon, 
-  Building2, 
-  FormInput,
-  Code,
-  Server,
-  Globe,
-  Layers,
-  ShoppingCart,
-  Smartphone
-} from 'lucide-react'
+// Icons will be handled by the client component
 import Link from 'next/link'
 
 const documentationSections = [
@@ -24,31 +11,31 @@ const documentationSections = [
       {
         title: 'Payment Gateway',
         description: 'Accept online payments with multiple payment methods',
-        icon: CreditCard,
+        icon: 'CreditCard',
         href: '/docs/payment-gateway'
       },
       {
         title: 'E-NACH',
         description: 'Automated recurring payment collection',
-        icon: Banknote,
+        icon: 'Banknote',
         href: '/docs/e-nach'
       },
       {
         title: 'Payment Link',
         description: 'Generate instant payment links',
-        icon: LinkIcon,
+        icon: 'LinkIcon',
         href: '/docs/payment-link'
       },
       {
         title: 'B2B E-Collect',
         description: 'Business-to-business payment collection',
-        icon: Building2,
+        icon: 'Building2',
         href: '/docs/b2b-e-collect'
       },
       {
         title: 'QwikForms',
         description: 'Dynamic payment forms with custom fields',
-        icon: FormInput,
+        icon: 'FormInput',
         href: '/docs/qwikforms'
       }
     ]
@@ -60,31 +47,31 @@ const documentationSections = [
       {
         title: 'Server Integration',
         description: 'Server-to-server API integration',
-        icon: Server,
+        icon: 'Server',
         href: '/docs/integration/server'
       },
       {
         title: 'Web Integration',
         description: 'Client-side web integration',
-        icon: Globe,
+        icon: 'Globe',
         href: '/docs/integration/web'
       },
       {
         title: 'Hybrid Integration',
         description: 'Combined server and client integration',
-        icon: Layers,
+        icon: 'Layers',
         href: '/docs/integration/hybrid'
       },
       {
         title: 'E-commerce Platforms',
         description: 'Pre-built plugins for popular platforms',
-        icon: ShoppingCart,
+        icon: 'ShoppingCart',
         href: '/docs/integration/ecommerce'
       },
       {
         title: 'Native Mobile',
         description: 'iOS and Android SDK integration',
-        icon: Smartphone,
+        icon: 'Smartphone',
         href: '/docs/integration/native'
       }
     ]
@@ -96,13 +83,13 @@ const quickLinks = [
     title: 'API Reference',
     description: 'Complete API documentation with examples',
     href: '/docs/api',
-    icon: Book
+    icon: 'Book'
   },
   {
     title: 'Getting Started',
     description: 'Quick start guide for new developers',
     href: '/docs/getting-started',
-    icon: Code
+    icon: 'Code'
   }
 ]
 
