@@ -12,12 +12,10 @@ import {
   Zap,
   ArrowRight,
   Terminal,
-  BookOpen,
-  Rocket
+  BookOpen
 } from 'lucide-react'
 import Link from 'next/link'
 import { ApiTester } from '@/components/playground/api-tester'
-import { cn } from '@/lib/utils'
 
 const apiEndpoints = [
   {
@@ -138,19 +136,12 @@ export default function PlaygroundPage() {
           <>
             {/* Quick Actions */}
             <div className="mb-8">
-              <h2 className="text-2xl font-semibold mb-6 animate-fadeInUp flex items-center gap-2">
-                <Rocket className="h-6 w-6 text-primary animate-bounce-slow" />
-                Quick Actions
-              </h2>
+              <h2 className="text-2xl font-semibold mb-6">Quick Actions</h2>
               <div className="grid md:grid-cols-3 gap-6">
                 {quickActions.map((action, index) => (
                   <Card 
                     key={index} 
-                    className={cn(
-                      "interactive-card cursor-pointer group relative overflow-hidden",
-                      "animate-fadeInUp"
-                    )}
-                    style={{ animationDelay: `${(index + 1) * 150}ms` }}
+                    className="hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() => {
                       setActiveSection('interactive')
                       if (action.category === 'E-NACH') setSelectedCategory('enach')
@@ -158,31 +149,14 @@ export default function PlaygroundPage() {
                       else setSelectedCategory('payments')
                     }}
                   >
-                    {/* Animated gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
-                    
-                    <CardHeader className="relative z-10">
-                      <CardTitle className="text-lg group-hover:text-primary transition-colors duration-300 flex items-center gap-2">
-                        {action.title}
-                        <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transform translate-x-0 group-hover:translate-x-1 transition-all duration-300" />
-                      </CardTitle>
-                      <Badge 
-                        variant="outline" 
-                        className="w-fit group-hover:border-primary group-hover:bg-primary/5 transition-all duration-300"
-                      >
-                        {action.category}
-                      </Badge>
+                    <CardHeader>
+                      <CardTitle className="text-lg">{action.title}</CardTitle>
+                      <Badge variant="outline" className="w-fit">{action.category}</Badge>
                     </CardHeader>
-                    <CardContent className="relative z-10">
-                      <CardDescription className="mb-4 group-hover:text-foreground/80 transition-colors duration-300">
-                        {action.description}
-                      </CardDescription>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="w-full group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
-                      >
-                        <Zap className="h-4 w-4 mr-2" />
+                    <CardContent>
+                      <CardDescription className="mb-4">{action.description}</CardDescription>
+                      <Button size="sm" className="w-full">
+                        <Zap className="mr-2 h-4 w-4" />
                         {action.action}
                       </Button>
                     </CardContent>

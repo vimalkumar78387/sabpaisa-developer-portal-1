@@ -1,5 +1,5 @@
-import { PageLoadingSkeleton } from '@/components/ui/loading-skeletons'
+import { DocLoadingSkeleton } from '@/components/ui/loading-skeletons'
 
 export default function DocsLoading() {
-  return <PageLoadingSkeleton />
+  return <DocLoadingSkeleton />
 }
