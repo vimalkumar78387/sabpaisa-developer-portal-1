@@ -88,12 +88,13 @@ interface SidebarMenuItemProps {
   hasChildren?: boolean
   level?: number
   onClick?: () => void
+  className?: string
 }
 
 const SidebarMenuItem = React.forwardRef<
   HTMLButtonElement,
   SidebarMenuItemProps
->(({ children, href, isActive, hasChildren, level = 0, onClick, ...props }, ref) => (
+>(({ children, href, isActive, hasChildren, level = 0, onClick, className, ...props }, ref) => (
   <Button
     ref={ref}
     variant={isActive ? "secondary" : "ghost"}

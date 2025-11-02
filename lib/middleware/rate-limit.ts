@@ -14,7 +14,9 @@ interface RateLimitOptions {
 // Default key generator using IP address
 function defaultKeyGenerator(req: NextRequest): string {
   const forwarded = req.headers.get('x-forwarded-for')
-  const ip = forwarded ? forwarded.split(',')[0] : req.ip || 'unknown'
+  const ip = forwarded
+    ? forwarded.split(',')[0]
+    : req.headers.get('x-real-ip') || 'unknown'
   return ip
 }
 
@@ -99,7 +101,7 @@ export const rateLimits = {
     keyGenerator: (req) => {
       const body = req.body as any
       const email = body?.email || 'unknown'
-      const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || req.ip || 'unknown'
+      const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || req.headers.get('x-real-ip') || 'unknown'
       return `auth-${email}-${ip}`
     },
     message: 'Too many authentication attempts. Please try again in 15 minutes.'

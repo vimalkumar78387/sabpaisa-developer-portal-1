@@ -124,7 +124,7 @@ export function addToWhitelist(ip: string): void {
 
 export function isIpBlocked(req: NextRequest): boolean {
   const forwarded = req.headers.get('x-forwarded-for')
-  const ip = forwarded ? forwarded.split(',')[0].trim() : req.ip || 'unknown'
+  const ip = forwarded ? forwarded.split(',')[0].trim() : req.headers.get('x-real-ip') || 'unknown'
   
   // If whitelist exists and IP is not in it, block
   if (ipWhitelist.size > 0 && !ipWhitelist.has(ip)) {
@@ -192,7 +192,7 @@ export function logSecurityEvent(
   details?: any
 ): void {
   const forwarded = req.headers.get('x-forwarded-for')
-  const ip = forwarded ? forwarded.split(',')[0].trim() : req.ip || 'unknown'
+  const ip = forwarded ? forwarded.split(',')[0].trim() : req.headers.get('x-real-ip') || 'unknown'
   
   const event: SecurityEvent = {
     timestamp: new Date(),

@@ -2,25 +2,154 @@
 
 import Link from 'next/link';
 import { useState, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { CircleIcon, LogOut, User as UserIcon, Search } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuContent,
+  NavigationMenuTrigger,
+  NavigationMenuLink,
+  NavigationMenuIndicator,
+  navigationMenuTriggerStyle,
+} from '@/components/ui/navigation-menu';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Badge } from '@/components/ui/badge';
+import { CommandMenu } from '@/components/command-menu';
+import ThemeControls from './theme-controls';
 import { signOut } from '@/app/(login)/actions';
 import { User } from '@/lib/db/schema';
-import useSWR, { mutate } from 'swr';
-import ThemeControls from './theme-controls';
 import { siteConfig } from '@/lib/config';
+import { cn } from '@/lib/utils';
+import useSWR, { mutate } from 'swr';
+import type { LucideIcon } from 'lucide-react';
+import {
+  Activity,
+  ArrowUpRight,
+  BookOpen,
+  CreditCard,
+  LogOut,
+  Menu,
+  PlugZap,
+  Shield,
+  Sparkles,
+  Terminal,
+  Users,
+  Workflow,
+  Layers,
+  User as UserIcon,
+} from 'lucide-react';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+type NavLink = {
+  title: string;
+  href: string;
+  description: string;
+  icon: LucideIcon;
+};
+
+type NavigationItem = {
+  label: string;
+  columns?: { title: string; items: NavLink[] }[];
+  href?: string;
+  description?: string;
+  icon?: LucideIcon;
+  badge?: string;
+};
+
+const navigationItems: NavigationItem[] = [
+  {
+    label: 'Solutions',
+    columns: [
+      {
+        title: 'Payment flows',
+        items: [
+          {
+            title: 'Payment Gateway',
+            href: '/docs/payment-gateway',
+            description: 'Unified checkout orchestrating UPI, cards, and mandates.',
+            icon: CreditCard,
+          },
+          {
+            title: 'E-NACH Mandates',
+            href: '/docs/e-nach',
+            description: 'Automate recurring mandate creation and lifecycle events.',
+            icon: Workflow,
+          },
+          {
+            title: 'Payment Links',
+            href: '/docs/payment-link',
+            description: 'Spin up branded payment links on-demand for instant collection.',
+            icon: PlugZap,
+          },
+        ],
+      },
+      {
+        title: 'Operations & trust',
+        items: [
+          {
+            title: 'B2B E-Collect',
+            href: '/docs/b2b-e-collect',
+            description: 'Streamline enterprise reconciliations and settlements.',
+            icon: Layers,
+          },
+          {
+            title: 'Security & Compliance',
+            href: '/docs/security',
+            description: 'Ship PCI DSS, token vaulting, and risk controls by default.',
+            icon: Shield,
+          },
+          {
+            title: 'Webhooks & IPN',
+            href: '/docs/webhooks',
+            description: 'Subscribe to granular payment and risk events in real-time.',
+            icon: Activity,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'Docs',
+    href: '/docs',
+    description: 'Guides, API reference, and SDK playbooks.',
+    icon: BookOpen,
+  },
+  {
+    label: 'Playground',
+    href: '/playground',
+    description: 'Craft test requests and share them with your team.',
+    icon: Terminal,
+    badge: 'Live',
+  },
+  {
+    label: 'Community',
+    href: '/community',
+    description: 'Forums, support tickets, and best practice exchanges.',
+    icon: Users,
+  },
+  {
+    label: 'Changelog',
+    href: '/changelog',
+    description: 'See what shipped in the latest platform drops.',
+    icon: Sparkles,
+  },
+];
+
+const environmentStatus = {
+  label: 'Sandbox',
+  state: 'Operational',
+};
 
 function UserMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -35,50 +164,57 @@ function UserMenu() {
 
   if (!user) {
     return (
-      <div className="flex items-center space-x-4">
-        <Button asChild variant="outline" className="rounded-full">
-          <Link href="/sign-in">Sign In</Link>
+      <div className="flex items-center gap-2">
+        <Button asChild variant="ghost" className="rounded-full border border-border/60 px-4">
+          <Link href="/sign-in">Sign in</Link>
         </Button>
-        <Button asChild className="rounded-full">
-          <Link href="/sign-up">Sign Up</Link>
+        <Button asChild className="rounded-full px-4 shadow-primary/20">
+          <Link href="/sign-up">Create account</Link>
         </Button>
       </div>
     );
   }
 
+  const initials = (user.name || user.email || 'SP')
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-      <DropdownMenuTrigger>
-        <Avatar className="cursor-pointer size-9">
-          <AvatarImage alt={user.name || ''} />
-          <AvatarFallback>
-            {user.email
-              .split(' ')
-              .map((n) => n[0])
-              .join('')}
-          </AvatarFallback>
-        </Avatar>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="relative h-9 w-9 rounded-full border border-border/60 bg-background/80 p-0 shadow-sm transition hover:border-primary/40"
+        >
+          <Avatar className="h-9 w-9">
+            <AvatarImage alt={user.name || ''} />
+            <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+        </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <div className="px-2 py-1.5 text-sm font-medium text-foreground">
-          <div className="flex items-center">
-            <UserIcon className="mr-2 h-4 w-4" />
-            <span className="truncate">{user.name || user.email}</span>
-          </div>
+      <DropdownMenuContent align="end" className="w-56 rounded-xl border-border/60 p-2">
+        <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-sm font-medium text-foreground">
+          <UserIcon className="h-4 w-4 text-muted-foreground" />
+          <span className="truncate">{user.name || user.email}</span>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild className="cursor-pointer">
-          <Link href="/profile" className="flex w-full">
-            <UserIcon className="mr-2 h-4 w-4" />
-            <span>Profile Settings</span>
+        <DropdownMenuItem asChild className="cursor-pointer rounded-md px-3 py-2">
+          <Link href="/profile" className="flex w-full items-center gap-2">
+            <UserIcon className="h-4 w-4" />
+            <span>Profile settings</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <form action={handleSignOut} className="w-full">
-          <button type="submit" className="flex w-full">
-            <DropdownMenuItem className="w-full flex-1 cursor-pointer">
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Sign Out</span>
+          <button type="submit" className="w-full">
+            <DropdownMenuItem className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-destructive focus:text-destructive">
+              <LogOut className="h-4 w-4" />
+              <span>Sign out</span>
             </DropdownMenuItem>
           </button>
         </form>
@@ -87,51 +223,194 @@ function UserMenu() {
   );
 }
 
-function GlobalSearch() {
-  const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState('')
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
-    }
-  }
-
+function DesktopNavigation({ pathname }: { pathname: string }) {
   return (
-    <form onSubmit={handleSearch} className="hidden md:flex items-center">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Search docs..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 w-64 bg-background border-input"
-        />
-      </div>
-    </form>
-  )
+    <NavigationMenu className="hidden md:flex">
+      <NavigationMenuList className="gap-1">
+        {navigationItems.map((item) => (
+          <NavigationMenuItem key={item.label}>
+            {item.columns ? (
+              <>
+                <NavigationMenuTrigger className="rounded-full border border-transparent px-4 py-2 text-sm font-medium transition hover:border-primary/30 hover:bg-primary/5">
+                  {item.label}
+                </NavigationMenuTrigger>
+                <NavigationMenuContent className="overflow-hidden rounded-2xl border-border/60 bg-background/95 shadow-xl">
+                  <div className="grid gap-6 p-6 md:w-[520px] lg:w-[640px] lg:grid-cols-2">
+                    {item.columns.map((column) => (
+                      <div key={column.title} className="space-y-3">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          {column.title}
+                        </p>
+                        <div className="space-y-2">
+                          {column.items.map((link) => {
+                            const Icon = link.icon;
+                            const isActive = pathname.startsWith(link.href);
+                            return (
+                              <Link
+                                key={link.title}
+                                href={link.href}
+                                className="group flex items-start gap-3 rounded-xl border border-transparent px-3 py-3 transition hover:border-primary/20 hover:bg-primary/5"
+                              >
+                                <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-background/70 text-primary shadow-sm group-hover:border-primary/30 group-hover:bg-primary/10">
+                                  <Icon className="h-4 w-4" />
+                                </span>
+                                <span className="flex-1">
+                                  <span className="flex items-center gap-1 text-sm font-semibold text-foreground">
+                                    {link.title}
+                                    {isActive && (
+                                      <ArrowUpRight className="h-3 w-3 text-primary" />
+                                    )}
+                                  </span>
+                                  <span className="text-sm text-muted-foreground">
+                                    {link.description}
+                                  </span>
+                                </span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </NavigationMenuContent>
+              </>
+            ) : (
+              <NavigationMenuLink asChild>
+                <Link
+                  href={item.href!}
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    'rounded-full border border-transparent px-4 py-2 text-sm font-medium transition hover:border-primary/30 hover:bg-primary/5',
+                    pathname.startsWith(item.href!) && 'bg-primary/10 text-primary',
+                  )}
+                >
+                  <span className="flex items-center gap-2">
+                    {item.icon && <item.icon className="h-4 w-4" />}
+                    {item.label}
+                    {item.badge && (
+                      <Badge variant="outline" className="ml-1 border-primary/40 bg-primary/10 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </span>
+                </Link>
+              </NavigationMenuLink>
+            )}
+          </NavigationMenuItem>
+        ))}
+      </NavigationMenuList>
+      <NavigationMenuIndicator className="mt-1" />
+    </NavigationMenu>
+  );
+}
+
+function MobileNavigation({ onNavigate }: { onNavigate: () => void }) {
+  return (
+    <div className="flex flex-col gap-6 pb-8">
+      {navigationItems.map((item) => (
+        <div key={item.label} className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-foreground">{item.label}</p>
+            {item.badge && (
+              <Badge variant="outline" className="border-primary/40 bg-primary/10 text-[10px] uppercase tracking-wide text-primary">
+                {item.badge}
+              </Badge>
+            )}
+          </div>
+          {item.columns ? (
+            <div className="grid gap-2">
+              {item.columns.flatMap((column) =>
+                column.items.map((link) => {
+                  const Icon = link.icon;
+                  return (
+                    <Link
+                      key={link.title}
+                      href={link.href}
+                      onClick={onNavigate}
+                      className="flex items-start gap-3 rounded-xl border border-border/40 bg-muted/40 px-3 py-3 transition hover:border-primary/30 hover:bg-primary/10"
+                    >
+                      <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-lg bg-background/80 text-primary">
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <span className="flex-1">
+                        <span className="text-sm font-semibold text-foreground">{link.title}</span>
+                        <span className="block text-sm text-muted-foreground">{link.description}</span>
+                      </span>
+                    </Link>
+                  );
+                }),
+              )}
+            </div>
+          ) : (
+            <Link
+              href={item.href!}
+              onClick={onNavigate}
+              className="flex items-center gap-3 rounded-full border border-border/50 bg-background/80 px-4 py-2 text-sm font-medium transition hover:border-primary/40 hover:bg-primary/10"
+            >
+              {item.icon && <item.icon className="h-4 w-4 text-primary" />}
+              {item.label}
+            </Link>
+          )}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function Header() {
+  const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <header className="border-b border-border bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-        <div className="flex justify-between items-center">
-          <Link href="/" className="flex items-center">
-            <CircleIcon className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-            <span className="ml-2 text-lg sm:text-xl font-semibold text-foreground">{siteConfig.name}</span>
-          </Link>
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <GlobalSearch />
+    <header className="w-full border-b border-border/60 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-2 text-left">
+              <img
+                src="https://settlepaisa.sabpaisa.in/img/logo/logo-dark-full.png"
+                alt="SabPaisa Logo"
+                className="h-7 w-auto"
+              />
+              <div className="hidden flex-col text-xs font-semibold text-muted-foreground sm:flex">
+                <span className="text-sm text-foreground">{siteConfig.name || 'SabPaisa'}</span>
+                <span className="text-[11px] uppercase tracking-wide text-primary">Developer Portal</span>
+              </div>
+            </Link>
+            <Badge variant="outline" className="hidden border-emerald-400/60 bg-emerald-500/10 text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300 sm:flex">
+              {environmentStatus.label}: {environmentStatus.state}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2">
+            <CommandMenu />
             <div className="hidden sm:block">
               <ThemeControls />
             </div>
-            <Suspense fallback={<div className="h-8 w-8 sm:h-9 sm:w-9" />}>
+            <Suspense fallback={<div className="h-9 w-9" />}>
               <UserMenu />
             </Suspense>
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[320px] border-r border-border/60 bg-background/95">
+                <div className="mt-6 space-y-6">
+                  <Badge variant="outline" className="border-emerald-400/60 bg-emerald-500/10 text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
+                    {environmentStatus.label}: {environmentStatus.state}
+                  </Badge>
+                  <MobileNavigation onNavigate={() => setMobileMenuOpen(false)} />
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
+        </div>
+        <div className="hidden items-center justify-between md:flex">
+          <DesktopNavigation pathname={pathname} />
+          <Badge variant="outline" className="border-primary/40 bg-primary/5 text-xs font-semibold uppercase tracking-wide text-primary">
+            Build once. Scale everywhere.
+          </Badge>
         </div>
       </div>
     </header>

@@ -43,6 +43,7 @@ interface SearchResponse {
   results: SearchResult[]
   total: number
   categories: string[]
+  error?: string
 }
 
 const categoryIcons: Record<string, any> = {
