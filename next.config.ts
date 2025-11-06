@@ -6,6 +6,22 @@ const nextConfig: NextConfig = {
     clientSegmentCache: true,
     nodeMiddleware: true
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/txnenquiry/sandbox',
+        destination: 'https://stage-txnenquiry.sabpaisa.in/SPTxtnEnquiry/getTxnStatusByClientxnId'
+      },
+      {
+        source: '/api/txnenquiry/staging',
+        destination: 'https://stage-txnenquiry.sabpaisa.in/SPTxtnEnquiry/getTxnStatusByClientxnId'
+      },
+      {
+        source: '/api/txnenquiry/production',
+        destination: 'https://txnenquiry.sabpaisa.in/SPTxtnEnquiry/getTxnStatusByClientxnId'
+      }
+    ];
+  },
   allowedDevOrigins: [
     '*.clackypaas.com',
     'localhost',

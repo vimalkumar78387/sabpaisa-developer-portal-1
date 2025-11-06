@@ -13,6 +13,7 @@ interface CodeBlockProps {
   filename?: string
   className?: string
   showLineNumbers?: boolean
+  wrapLongLines?: boolean
 }
 
 export function CodeBlock({ 
@@ -20,7 +21,8 @@ export function CodeBlock({
   language = 'javascript', 
   filename, 
   className,
-  showLineNumbers = true 
+  showLineNumbers = true,
+  wrapLongLines = false
 }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
 
@@ -54,6 +56,7 @@ export function CodeBlock({
           language={language}
           style={oneDark}
           showLineNumbers={showLineNumbers}
+          wrapLongLines={wrapLongLines}
           className={cn(
             "!m-0 !bg-slate-950 !text-sm",
             filename ? "!rounded-t-none !rounded-b-lg" : "!rounded-lg"
@@ -61,6 +64,9 @@ export function CodeBlock({
           customStyle={{
             padding: '1rem',
             margin: 0,
+            whiteSpace: wrapLongLines ? 'pre-wrap' : 'pre',
+            wordBreak: wrapLongLines ? 'break-word' : 'normal',
+            overflowX: wrapLongLines ? 'hidden' : 'auto'
           }}
         >
           {code}

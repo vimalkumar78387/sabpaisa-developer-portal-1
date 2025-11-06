@@ -3,21 +3,19 @@
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import Lenis from 'lenis'
+import Image from 'next/image'
 import Link from 'next/link'
 import Script from 'next/script'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { FeatureCard } from '@/components/ui/feature-card'
 import { Badge } from '@/components/ui/badge'
+import { FeatureCard } from '@/components/ui/feature-card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   ArrowRight,
   Building2,
-  Box,
   Check,
   CheckCircle2,
-  CloudCog,
-  Command,
   Code,
   Copy,
   BookOpen,
@@ -25,7 +23,6 @@ import {
   Cpu,
   Database,
   Globe,
-  GitBranch,
   Laptop,
   Layers,
   MonitorCog,
@@ -215,105 +212,39 @@ const quickActions = [
 ]
 
 const clientLogos = [
-  { src: '/logos/SABPAISA.png', alt: 'SABPAISA' },
-  { src: '/logos/BSEB.jpg', alt: 'BSEB' },
-  { src: '/logos/RAIL.jpg', alt: 'RAIL' },
-  { src: '/logos/DelhiJB.jpg', alt: 'DelhiJB' },
-  { src: '/logos/MBD.png', alt: 'MBD' },
-  { src: '/logos/BOI.png', alt: 'BOI' },
+  { src: '/logos/MAGADH.png', alt: 'SABPAISA' },
+  { src: '/logos/BSEB.png', alt: 'BSEB' },
+  { src: '/logos/RAIL.png', alt: 'RAIL' },
+  { src: '/logos/DelhiJB.png', alt: 'DelhiJB' },
+  { src: '/logos/MBC.png', alt: 'MBD' },
+  { src: '/logos/BOIB.png', alt: 'BOI' },
 ]
-
-const sdkShowcase = [
-  {
-    title: 'TypeScript & Next.js SDK',
-    description: 'First-class support for server actions, App Router, and edge rendering powered by typed clients.',
-    icon: Terminal,
-    badges: ['SSR ready', 'Edge secure', 'Typed'],
-    languages: ['TypeScript', 'Next.js'],
-  },
-  {
-    title: 'Java / Spring Boot Starter',
-    description: 'Drop-in starter for REST and webhooks with resilient retry policies and observability hooks.',
-    icon: Command,
-    badges: ['Resilience4j', 'Webhooks', 'Maven'],
-    languages: ['Java', 'Spring'],
-  },
-  {
-    title: '.NET & Azure Workers',
-    description: 'Strongly typed clients for minimal APIs, background jobs, and durable functions.',
-    icon: Cpu,
-    badges: ['gRPC bridge', 'Background jobs'],
-    languages: ['.NET', 'Azure'],
-  },
-  {
-    title: 'Node.js Payments CLI',
-    description: 'Automate payout ops, reconcile transactions, and seed sandbox data with a single command.',
-    icon: Box,
-    badges: ['Automation', 'CLI tooling'],
-    languages: ['Node.js'],
-  },
-  {
-    title: 'Mobile (Kotlin / Swift)',
-    description: 'Native SDKs with secure vaulting, token management, and offline mandate storage.',
-    icon: CloudCog,
-    badges: ['Native UI', 'Mandates'],
-    languages: ['Kotlin', 'Swift'],
-  },
-  {
-    title: 'GraphQL & Webhooks',
-    description: 'Consume real-time payment events with subscriptions or streaming adapters.',
-    icon: GitBranch,
-    badges: ['Streaming', 'Subscriptions'],
-    languages: ['GraphQL'],
-  },
-]
-
-const languageColors: Record<string, string> = {
-  TypeScript: 'bg-[#3178c6] text-white',
-  'Next.js': 'bg-neutral-900 text-white',
-  Java: 'bg-[#ff6f00] text-white',
-  Spring: 'bg-[#166534] text-white',
-  '.NET': 'bg-[#512bd4] text-white',
-  Azure: 'bg-[#0078d4] text-white',
-  'Node.js': 'bg-[#256028] text-white',
-  Kotlin: 'bg-[#7f52ff] text-white',
-  Swift: 'bg-[#f97316] text-white',
-  GraphQL: 'bg-[#e10098] text-white',
-}
-
-const languageAbbreviation: Record<string, string> = {
-  TypeScript: 'TS',
-  'Next.js': 'NX',
-  Java: 'JA',
-  Spring: 'SP',
-  '.NET': '.N',
-  Azure: 'AZ',
-  'Node.js': 'ND',
-  Kotlin: 'KT',
-  Swift: 'SW',
-  GraphQL: 'GQ',
-}
 
 const faqItems = [
   {
-    question: 'How fast can we go from sandbox to production?',
+    question: 'What should I do if I receive a "Client Transaction ID is missing" error?',
     answer:
-      'Most engineering teams integrate the core payment flow in under two sprints. Our quick-start kits, typed SDKs, and automated test scenarios reduce manual QA, and production onboarding is guided by SabPaisa solution architects.',
+      'Double-check the Client Transaction ID parameter you are sending. Generate a unique identifier between 10 and 18 digits for every attempt to avoid this validation failure.',
   },
   {
-    question: 'Which payment methods and geographies are supported?',
+    question: 'How can I resolve the "Please Enable API Version" error?',
     answer:
-      'SabPaisa covers UPI, cards, net banking, wallets, mandates, and e-collect for India out of the box. Cross-border support is available via partner rails—contact us for a tailored rollout plan.',
+      'Reach out to your SabPaisa Account Manager with the API version details. The team will enable the required version for your tenant and confirm once it is ready.',
   },
   {
-    question: 'Does SabPaisa help with compliance and security audits?',
+    question: 'What should I do when I see the error "You are not passing the payer name in a valid format"?',
     answer:
-      'Yes. Every integration ships with PCI DSS Level 1 controls, token vaulting, configurable risk rules, and audit logs. We provide policy templates and evidence packs to accelerate your compliance reviews.',
+      'Verify that the payer name contains only alphabetic characters and spaces. Remove special characters or extra symbols before submitting the request again.',
   },
   {
-    question: 'Can we extend the platform with custom logic?',
+    question: 'What should I do if I see the message "You are passing wrong credentials"?',
     answer:
-      'You can plug SabPaisa into your orchestration layer using REST, GraphQL, or event streaming. Custom rule engines, reconciliation bots, and dashboards can listen to webhook topics or query the analytics API.',
+      'Confirm that the clientCode, transaction username, password, and request URL all point to the correct SabPaisa environment (sandbox or production). Update any incorrect values and retry.',
+  },
+  {
+    question: 'How do I address issues with encryption or decryption for transaction enquiries?',
+    answer:
+      'Cross-check your implementation against the AES-256 reference code supplied for your platform. Ensure the authKey, authIV, and concatenated parameter order match the specification before encrypting or decrypting payloads.',
   },
 ]
 
@@ -528,7 +459,7 @@ export default function HomePage() {
                   engineers will love. Handle one-time, recurring, or mandate-based flows with a single API contract.
                 </p>
                 <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-                  <Button asChild size="lg" className="group gap-2 rounded-full px-8 py-6 text-base">
+                  <Button asChild size="lg" className="button-3d group gap-2 rounded-full px-8 py-6 text-base shadow-lg">
                     <Link href="/docs/getting-started">
                       Start building
                       <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -538,7 +469,7 @@ export default function HomePage() {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="group gap-2 rounded-full border-primary/20 bg-background/60 px-8 py-6 text-base backdrop-blur shadow-lg"
+                    className="button-3d group gap-2 rounded-full border-transparent bg-background/70 px-8 py-6 text-base backdrop-blur shadow-lg"
                   >
                     <Link href="/playground">
                       Launch playground
@@ -592,7 +523,10 @@ export default function HomePage() {
                           </pre>
                           <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
                             <span>{snippet.description}</span>
-                            <Badge variant="outline" className="border-white/20 bg-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-white">
+                            <Badge
+                              variant="outline"
+                              className="border-white/20 bg-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-white"
+                            >
                               {snippet.language}
                             </Badge>
                           </div>
@@ -650,8 +584,8 @@ export default function HomePage() {
                 </span>
                 <span />
               </div>
-              <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-background/80 py-6 shadow-sm">
-                <div className="flex items-center gap-12 whitespace-nowrap py-2 text-muted-foreground animate-marquee min-w-[200%]">
+              <div className="logo-marquee relative overflow-hidden rounded-2xl border border-border/50 bg-background/80 py-6 shadow-sm">
+                <div className="logo-marquee-track flex items-center gap-12 whitespace-nowrap py-2 text-muted-foreground">
                   {[...clientLogos, ...clientLogos].map((logo, idx) => (
                     <img
                       key={`${logo.alt}-${idx}`}
@@ -715,8 +649,13 @@ export default function HomePage() {
           </div>
         </AnimatedSection>
 
-        <AnimatedSection className="bg-background py-20" delay={0.2}>
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <AnimatedSection className="relative overflow-hidden bg-background py-20" delay={0.2}>
+          <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),transparent_65%)] dark:bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),transparent_65%)]" />
+            <div className="absolute -top-24 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-gradient-to-br from-primary/30 via-purple-500/20 to-transparent blur-3xl opacity-80" style={{ animation: 'orb-spin 35s linear infinite' }} />
+            <div className="absolute bottom-[-20%] right-[-10%] h-96 w-96 rounded-full bg-gradient-to-tr from-primary/20 via-secondary/20 to-transparent blur-3xl opacity-70" style={{ animation: 'orb-pulse 6s ease-in-out infinite' }} />
+          </div>
+          <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
               <AnimatedDiv className="space-y-6" delay={0.25}>
                 <Badge variant="outline" className="gap-2 rounded-full border-primary/30 bg-primary/5 text-primary">
@@ -796,60 +735,13 @@ export default function HomePage() {
           </div>
         </AnimatedSection>
 
-        <AnimatedSection className="bg-background py-20" delay={0.3}>
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <AnimatedDiv className="mb-12 space-y-4 text-center" delay={0.35}>
-              <Badge variant="outline" className="mx-auto w-fit rounded-full border-primary/40 bg-primary/5 text-primary">
-                SDK toolkit
-              </Badge>
-              <h2 className="text-3xl font-semibold text-foreground md:text-4xl">Ship faster with battle-tested SDKs</h2>
-              <p className="text-base text-muted-foreground">
-                Choose your stack and get scaffolded projects, typed clients, and comprehensive samples ready for
-                production.
-              </p>
-            </AnimatedDiv>
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {sdkShowcase.map((sdk, sdkIdx) => (
-                <AnimatedDiv
-                  key={sdk.title}
-                  className="group relative overflow-hidden rounded-3xl border border-border/60 bg-background/90 p-6 shadow-sm backdrop-blur transition hover:border-primary/40 hover:shadow-xl"
-                  delay={0.37 + sdkIdx * 0.06}
-                  variant={sdkIdx % 2 === 0 ? slideLeftVariant : slideRightVariant}
-                >
-                  <div className="flex items-center gap-3 text-foreground">
-                    <sdk.icon className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-semibold">{sdk.title}</h3>
-                  </div>
-                  <p className="mt-3 text-sm text-muted-foreground">{sdk.description}</p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {sdk.badges.map((badge) => (
-                      <span key={badge} className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs text-primary">
-                        {badge}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="mt-6 flex gap-2">
-                    {sdk.languages.map((language) => (
-                      <span
-                        key={language}
-                        className={cn(
-                          'flex h-9 w-9 items-center justify-center rounded-xl text-xs font-semibold uppercase',
-                          languageColors[language],
-                        )}
-                        title={language}
-                      >
-                        {languageAbbreviation[language] ?? language.slice(0, 2).toUpperCase()}
-                      </span>
-                    ))}
-                  </div>
-                </AnimatedDiv>
-              ))}
-            </div>
+        <AnimatedSection className="relative overflow-hidden bg-muted/10 py-20" delay={0.35}>
+          <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(59,130,246,0.12),transparent_65%)] dark:bg-[radial-gradient(circle_at_bottom,_rgba(59,130,246,0.18),transparent_65%)]" />
+            <div className="absolute -bottom-24 left-1/3 h-72 w-72 -translate-x-1/2 rounded-full bg-gradient-to-br from-primary/25 via-purple-500/15 to-transparent blur-3xl opacity-75" style={{ animation: 'orb-spin 40s linear infinite' }} />
+            <div className="absolute top-[-15%] right-[-5%] h-80 w-80 rounded-full bg-gradient-to-tr from-primary/15 via-secondary/15 to-transparent blur-3xl opacity-65" style={{ animation: 'orb-pulse 7s ease-in-out infinite' }} />
           </div>
-        </AnimatedSection>
-
-        <AnimatedSection className="bg-muted/10 py-20" delay={0.35}>
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <AnimatedDiv className="mb-12 space-y-4 text-center" delay={0.4}>
               <Badge variant="outline" className="mx-auto w-fit rounded-full border-primary/40 bg-primary/5 text-primary">
                 Developer shortcuts
@@ -900,6 +792,56 @@ export default function HomePage() {
           </div>
         </AnimatedSection>
       </main>
+      <footer className="border-t border-border/60 bg-background/95 py-16">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-8 px-4 text-center text-base text-muted-foreground sm:px-6 lg:px-8 md:flex-row md:justify-between md:text-left">
+          <p className="order-1 md:order-none">Copyright © 2025 SabPaisa, All Rights Reserved.</p>
+
+          <div className="order-3 flex flex-wrap items-center justify-center gap-4 md:order-none">
+            <Image
+              src="/logos/visa.jpg"
+              alt="Visa"
+              width={90}
+              height={40}
+              className="h-10 w-auto rounded-md border border-border/60 bg-background/80 p-1.5 shadow-sm"
+            />
+            <Image
+              src="/logos/NPCI.png"
+              alt="NPCI"
+              width={110}
+              height={40}
+              className="h-10 w-auto rounded-md border border-border/60 bg-background/80 p-1.5 shadow-sm"
+            />
+            <Image
+              src="/logos/RBI.png"
+              alt="RBI"
+              width={90}
+              height={40}
+              className="h-10 w-auto rounded-md border border-border/60 bg-background/80 p-1.5 shadow-sm"
+            />
+            <Image
+              src="/logos/PCI.png"
+              alt="PCI DSS"
+              width={100}
+              height={40}
+              className="h-10 w-auto rounded-md border border-border/60 bg-background/80 p-1.5 shadow-sm"
+            />
+            <Image
+              src="/logos/ISO.png"
+              alt="ISO 27001"
+              width={100}
+              height={40}
+              className="h-10 w-auto rounded-md border border-border/60 bg-background/80 p-1.5 shadow-sm"
+            />
+          </div>
+
+          <Link
+            href="/contact"
+            className="order-2 font-medium text-foreground transition hover:text-primary md:order-none"
+          >
+            Contact support
+          </Link>
+        </div>
+      </footer>
     </div>
   )
 }

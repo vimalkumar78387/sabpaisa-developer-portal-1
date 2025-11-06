@@ -31,6 +31,7 @@ const apiEndpoints = [
   { method: 'GET', endpoint: '/api/v1/refunds/{refundId}/status', title: 'Refund Status', description: 'Check the status of a refund', category: 'refunds' },
   { method: 'POST', endpoint: '/api/v1/enach/mandates/create', title: 'Create E-NACH Mandate', description: 'Set up recurring payment mandate', category: 'enach' },
   { method: 'GET', endpoint: '/api/v1/enach/mandates/{mandateId}', title: 'Get Mandate Details', description: 'Retrieve mandate information', category: 'enach' },
+  { method: 'POST', endpoint: '/SPTxtnEnquiry/getTxnStatusByClientxnId', title: 'Transaction Enquiry', description: 'Fetch live status for a client transaction ID.', category: 'transaction-enquiry' },
 ]
 
 const runtimeSignals = [
@@ -43,13 +44,19 @@ const quickActions = [
   { title: 'Test Payment Flow', description: 'Create a sample payment and test the complete flow', action: 'Try Now', category: 'payments' },
   { title: 'Webhook Testing', description: 'Test webhook endpoints with sample payloads', action: 'Test Webhooks', category: 'webhooks' },
   { title: 'E-NACH Simulation', description: 'Simulate E-NACH mandate creation and debit', action: 'Simulate', category: 'enach' },
+  { title: 'Transaction Enquiry', description: 'Decrypt statusTransEncData and check a transaction status instantly.', action: 'Check Status', category: 'transaction-enquiry' },
 ]
 
 export default function PlaygroundPage() {
   const [activeSection, setActiveSection] = useState('overview')
   const [selectedCategory, setSelectedCategory] = useState('payments')
 
-  const filteredEndpoints = apiEndpoints.filter((endpoint) => endpoint.category === selectedCategory)
+  const filteredEndpoints = apiEndpoints.filter((endpoint) => {
+    if (selectedCategory === 'payments') {
+      return endpoint.category === 'payments' || endpoint.category === 'payment-links'
+    }
+    return endpoint.category === selectedCategory
+  })
 
   return (
     <div className="container mx-auto px-6 py-8">
@@ -158,10 +165,11 @@ export default function PlaygroundPage() {
             <div className="mb-8">
               <h2 className="mb-6 text-2xl font-semibold">API Explorer</h2>
               <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 md:grid-cols-4">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
                   <TabsTrigger value="payments">Payments</TabsTrigger>
                   <TabsTrigger value="refunds">Refunds</TabsTrigger>
                   <TabsTrigger value="enach">E-NACH</TabsTrigger>
+                  <TabsTrigger value="transaction-enquiry">Txn Enquiry</TabsTrigger>
                   <TabsTrigger value="webhooks" disabled>
                     Webhooks
                   </TabsTrigger>
@@ -194,7 +202,7 @@ export default function PlaygroundPage() {
           </>
         ) : (
           <div id="interactive">
-            <ApiTester />
+            <ApiTester selectedCategory={selectedCategory} />
           </div>
         )}
       </div>

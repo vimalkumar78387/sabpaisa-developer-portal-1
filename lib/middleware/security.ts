@@ -20,6 +20,7 @@ const defaultSecurityHeaders: SecurityHeaders = {
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https: blob:",
     "connect-src 'self' https: wss:",
+    "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'"

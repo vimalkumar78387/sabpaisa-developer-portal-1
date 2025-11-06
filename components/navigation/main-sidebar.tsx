@@ -6,10 +6,8 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import {
   Sidebar,
-  SidebarHeader,
   SidebarContent,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -31,8 +29,7 @@ import {
   Banknote,
   Link as LinkIcon,
   Building2,
-  FormInput,
-  Search
+  FormInput
 } from 'lucide-react'
 
 interface NavItem {
@@ -48,11 +45,6 @@ const navigationItems: NavItem[] = [
     title: 'Getting Started',
     icon: Home,
     href: '/'
-  },
-  {
-    title: 'Search',
-    icon: Search,
-    href: '/search'
   },
   {
     title: 'Products',
@@ -91,23 +83,48 @@ const navigationItems: NavItem[] = [
     items: [
       {
         title: 'Server Integration',
-        href: '/docs/integration/server'
+        items: [
+          { title: 'Java', href: '/docs#server-integration-java' },
+          { title: 'PHP', href: '/docs#server-integration-php' },
+          { title: 'Laravel', href: '/docs#server-integration-laravel' },
+          { title: 'Node.js', href: '/docs#server-integration-nodejs' },
+          { title: 'Python', href: '/docs#server-integration-python' },
+          { title: '.NET', href: '/docs#server-integration-dotnet' }
+        ]
       },
       {
         title: 'Web Integration',
-        href: '/docs/integration/web'
+        items: [
+          { title: 'ReactJS', href: '/docs#web-integration-reactjs' },
+          { title: 'AngularJS', href: '/docs#web-integration-angularjs' },
+          { title: 'Vue.js', href: '/docs#web-integration-vuejs' }
+        ]
       },
       {
         title: 'Hybrid Integration',
-        href: '/docs/integration/hybrid'
+        items: [
+          { title: 'Flutter', href: '/docs#hybrid-integration-flutter' },
+          { title: 'React Native', href: '/docs#hybrid-integration-react-native' },
+          { title: 'Cordova', href: '/docs#hybrid-integration-cordova' },
+          { title: 'Capacitor', href: '/docs#hybrid-integration-capacitor' },
+          { title: 'Ionic', href: '/docs#hybrid-integration-ionic' }
+        ]
       },
       {
-        title: 'E-commerce Platforms',
-        href: '/docs/integration/ecommerce'
+        title: 'Native Integration',
+        items: [
+          { title: 'iOS', href: '/docs#native-integration-ios' },
+          { title: 'Android', href: '/docs#native-integration-android' }
+        ]
       },
       {
-        title: 'Native Mobile',
-        href: '/docs/integration/native'
+        title: 'E-commerce Plugin',
+        items: [
+          { title: 'WooCommerce Plugin', href: '/docs#ecommerce-plugin-woocommerce-plugin' },
+          { title: 'Odoo', href: '/docs#ecommerce-plugin-odoo' },
+          { title: 'Wix', href: '/docs#ecommerce-plugin-wix' },
+          { title: 'OpenCart', href: '/docs#ecommerce-plugin-opencart' }
+        ]
       }
     ]
   },
@@ -154,23 +171,56 @@ interface MainSidebarProps {
 
 export function MainSidebar({ className }: MainSidebarProps) {
   const pathname = usePathname()
+  const [currentHash, setCurrentHash] = useState<string>('')
   const [openItems, setOpenItems] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const syncHash = () => setCurrentHash(window.location.hash)
+    syncHash()
+    window.addEventListener('hashchange', syncHash)
+    return () => window.removeEventListener('hashchange', syncHash)
+  }, [])
+
+  const isActive = (href?: string) => {
+    if (!href) return false
+    if (href.includes('#')) {
+      const [hrefPath, hrefHash] = href.split('#')
+      const matchesPath = pathname === hrefPath
+      const matchesHash = currentHash === `#${hrefHash}`
+      return matchesPath && matchesHash
+    }
+    return pathname === href || pathname.startsWith(href + '/')
+  }
+
+  const hasActiveDescendant = (item: NavItem): boolean => {
+    if (isActive(item.href)) {
+      return true
+    }
+    if (item.items) {
+      return item.items.some((child) => hasActiveDescendant(child))
+    }
+    return false
+  }
 
   // Auto-expand parent items based on current path
   useEffect(() => {
     const newOpenItems = new Set<string>()
-    navigationItems.forEach((item) => {
-      if (item.items) {
-        const hasActiveChild = item.items.some(child => 
-          child.href && pathname.startsWith(child.href)
-        )
-        if (hasActiveChild) {
-          newOpenItems.add(item.title)
+    const collectOpen = (items: NavItem[]) => {
+      items.forEach((item) => {
+        if (item.items && item.items.length > 0) {
+          if (hasActiveDescendant(item)) {
+            newOpenItems.add(item.title)
+          }
+          collectOpen(item.items)
         }
-      }
-    })
+      })
+    }
+
+    collectOpen(navigationItems)
     setOpenItems(newOpenItems)
-  }, [pathname])
+  }, [pathname, currentHash])
 
   const toggleItem = (title: string) => {
     const newOpenItems = new Set(openItems)
@@ -182,16 +232,12 @@ export function MainSidebar({ className }: MainSidebarProps) {
     setOpenItems(newOpenItems)
   }
 
-  const isActive = (href?: string) => {
-    if (!href) return false
-    return pathname === href || pathname.startsWith(href + '/')
-  }
-
   const renderNavItem = (item: NavItem, level: number = 0) => {
     const Icon = item.icon
     const hasChildren = item.items && item.items.length > 0
     const isItemOpen = openItems.has(item.title)
     const active = isActive(item.href)
+    const highlighted = hasChildren ? hasActiveDescendant(item) || isItemOpen : active
 
     if (hasChildren) {
       return (
@@ -206,7 +252,7 @@ export function MainSidebar({ className }: MainSidebarProps) {
               className={cn(
                 "w-full justify-start h-auto py-2 px-3 font-normal",
                 level > 0 && "ml-4",
-                active && "bg-accent text-accent-foreground"
+                highlighted ? "bg-accent text-accent-foreground" : "hover:bg-transparent hover:text-foreground"
               )}
             >
               {Icon && <Icon className="mr-2 h-4 w-4" />}
@@ -262,18 +308,6 @@ export function MainSidebar({ className }: MainSidebarProps) {
 
   return (
     <Sidebar className={className}>
-      <SidebarHeader>
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">SP</span>
-          </div>
-          <div>
-            <h2 className="font-semibold text-lg">SabPaisa</h2>
-            <p className="text-xs text-muted-foreground">Developer Portal</p>
-          </div>
-        </div>
-      </SidebarHeader>
-      
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,7 +28,6 @@ import { CommandMenu } from '@/components/command-menu';
 import ThemeControls from './theme-controls';
 import { signOut } from '@/app/(login)/actions';
 import { User } from '@/lib/db/schema';
-import { siteConfig } from '@/lib/config';
 import { cn } from '@/lib/utils';
 import useSWR, { mutate } from 'swr';
 import type { LucideIcon } from 'lucide-react';
@@ -146,11 +145,6 @@ const navigationItems: NavigationItem[] = [
   },
 ];
 
-const environmentStatus = {
-  label: 'Sandbox',
-  state: 'Operational',
-};
-
 function UserMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { data: user } = useSWR<User>('/api/user', fetcher);
@@ -231,9 +225,7 @@ function DesktopNavigation({ pathname }: { pathname: string }) {
           <NavigationMenuItem key={item.label}>
             {item.columns ? (
               <>
-                <NavigationMenuTrigger className="rounded-full border border-transparent px-4 py-2 text-sm font-medium transition hover:border-primary/30 hover:bg-primary/5">
-                  {item.label}
-                </NavigationMenuTrigger>
+                <NavigationMenuTrigger>{item.label}</NavigationMenuTrigger>
                 <NavigationMenuContent className="overflow-hidden rounded-2xl border-border/60 bg-background/95 shadow-xl">
                   <div className="grid gap-6 p-6 md:w-[520px] lg:w-[640px] lg:grid-cols-2">
                     {item.columns.map((column) => (
@@ -276,14 +268,7 @@ function DesktopNavigation({ pathname }: { pathname: string }) {
               </>
             ) : (
               <NavigationMenuLink asChild>
-                <Link
-                  href={item.href!}
-                  className={cn(
-                    navigationMenuTriggerStyle(),
-                    'rounded-full border border-transparent px-4 py-2 text-sm font-medium transition hover:border-primary/30 hover:bg-primary/5',
-                    pathname.startsWith(item.href!) && 'bg-primary/10 text-primary',
-                  )}
-                >
+                <Link href={item.href!} className={cn(pathname.startsWith(item.href!) && 'border-primary/50 text-primary')}>
                   <span className="flex items-center gap-2">
                     {item.icon && <item.icon className="h-4 w-4" />}
                     {item.label}
@@ -360,26 +345,38 @@ function MobileNavigation({ onNavigate }: { onNavigate: () => void }) {
 export default function Header() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 0);
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <header className="w-full border-b border-border/60 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+    <header
+      className={cn(
+        'sticky top-0 z-50 w-full border-b transition-colors duration-300 backdrop-blur-md',
+        isScrolled
+          ? 'border-border/30 bg-background/50 supports-[backdrop-filter]:bg-background/30'
+          : 'border-border/60 bg-background/80 supports-[backdrop-filter]:bg-background/60'
+      )}
+    >
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 -ml-2">
             <Link href="/" className="flex items-center gap-2 text-left">
               <img
                 src="https://settlepaisa.sabpaisa.in/img/logo/logo-dark-full.png"
                 alt="SabPaisa Logo"
                 className="h-7 w-auto"
               />
-              <div className="hidden flex-col text-xs font-semibold text-muted-foreground sm:flex">
-                <span className="text-sm text-foreground">{siteConfig.name || 'SabPaisa'}</span>
-                <span className="text-[11px] uppercase tracking-wide text-primary">Developer Portal</span>
-              </div>
+              <span className="glow-badge inline-flex h-7 items-center rounded-md px-3 text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-900 dark:text-slate-100">
+                Developers
+              </span>
             </Link>
-            <Badge variant="outline" className="hidden border-emerald-400/60 bg-emerald-500/10 text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300 sm:flex">
-              {environmentStatus.label}: {environmentStatus.state}
-            </Badge>
           </div>
           <div className="flex items-center gap-2">
             <CommandMenu />
@@ -397,9 +394,6 @@ export default function Header() {
               </SheetTrigger>
               <SheetContent side="left" className="w-[320px] border-r border-border/60 bg-background/95">
                 <div className="mt-6 space-y-6">
-                  <Badge variant="outline" className="border-emerald-400/60 bg-emerald-500/10 text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
-                    {environmentStatus.label}: {environmentStatus.state}
-                  </Badge>
                   <MobileNavigation onNavigate={() => setMobileMenuOpen(false)} />
                 </div>
               </SheetContent>
@@ -408,9 +402,6 @@ export default function Header() {
         </div>
         <div className="hidden items-center justify-between md:flex">
           <DesktopNavigation pathname={pathname} />
-          <Badge variant="outline" className="border-primary/40 bg-primary/5 text-xs font-semibold uppercase tracking-wide text-primary">
-            Build once. Scale everywhere.
-          </Badge>
         </div>
       </div>
     </header>
