@@ -131,7 +131,16 @@ const navigationItems: NavItem[] = [
   {
     title: 'API Reference',
     icon: Book,
-    href: '/docs/api'
+    items: [
+      {
+        title: 'Transaction Enquiry API',
+        href: '/docs#api-reference-transaction-enquiry'
+      },
+      {
+        title: 'Refund API',
+        href: '/docs#api-reference-refund'
+      }
+    ]
   },
   {
     title: 'API Playground',

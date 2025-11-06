@@ -2,6 +2,7 @@ import Link from 'next/link'
 
 import { type IntegrationKitDoc } from '@/components/docs/integration-kit-docs'
 import { IntegrationDocExplorer } from '@/components/docs/integration-doc-explorer'
+import { apiReferenceKits } from '@/components/docs/api-reference-kits'
 import { Button } from '@/components/ui/button'
 
 const sandboxEndpoint = 'https://sandbox.api.sabpaisa.in/v1/payments'
@@ -1150,8 +1151,15 @@ const integrationDocCategories = [
     id: 'ecommerce-plugin',
     title: 'E-commerce Plugin',
     kits: ecommerceIntegrationKits
+  },
+  {
+    id: 'api-reference',
+    title: 'API Reference',
+    kits: apiReferenceKits
   }
 ] as const
+
+
 export default function DocsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-12 px-6 py-12">

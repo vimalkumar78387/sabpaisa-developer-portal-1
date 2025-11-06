@@ -21,6 +21,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ApiTester } from '@/components/playground/api-tester'
+import { RefundApiTester } from '@/components/playground/refund-api-tester'
 import { cn } from '@/lib/utils'
 
 const apiEndpoints = [
@@ -45,6 +46,7 @@ const quickActions = [
   { title: 'Webhook Testing', description: 'Test webhook endpoints with sample payloads', action: 'Test Webhooks', category: 'webhooks' },
   { title: 'E-NACH Simulation', description: 'Simulate E-NACH mandate creation and debit', action: 'Simulate', category: 'enach' },
   { title: 'Transaction Enquiry', description: 'Decrypt statusTransEncData and check a transaction status instantly.', action: 'Check Status', category: 'transaction-enquiry' },
+  { title: 'Refund API', description: 'Encrypt refundQuery, trigger a refund request, and decrypt the live response.', action: 'Open Refund Tester', category: 'refunds' },
 ]
 
 export default function PlaygroundPage() {
@@ -202,7 +204,11 @@ export default function PlaygroundPage() {
           </>
         ) : (
           <div id="interactive">
-            <ApiTester selectedCategory={selectedCategory} />
+            {selectedCategory === 'refunds' ? (
+              <RefundApiTester />
+            ) : (
+              <ApiTester selectedCategory={selectedCategory} />
+            )}
           </div>
         )}
       </div>

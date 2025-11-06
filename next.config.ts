@@ -19,6 +19,14 @@ const nextConfig: NextConfig = {
       {
         source: '/api/txnenquiry/production',
         destination: 'https://txnenquiry.sabpaisa.in/SPTxtnEnquiry/getTxnStatusByClientxnId'
+      },
+      {
+        source: '/api/refund/stage',
+        destination: 'https://stage-gateway.sabpaisa.in/sabpaisa/refund'
+      },
+      {
+        source: '/api/refund/production',
+        destination: 'https://gateway.sabpaisa.in/sabpaisa/refund'
       }
     ];
   },
