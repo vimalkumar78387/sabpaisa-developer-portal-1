@@ -169,14 +169,12 @@ export const apiReferenceKits: IntegrationKitDoc[] = [
       notes: [
         'Validate the decrypted payload and persist it before updating downstream systems.',
         'Status codes: 0000=Success, 0100=Initiated, 0200=Aborted, 0300=Failed, 0400=Challan generated, 0999=Unknown, 404=Transaction not found.',
-        'API status codes: 00=Processed successfully, 01=Accepted, 02=Unable to decrypt, 03=Bad request, 04=Invalid client code, 05=Support escalation, 06=Invalid amount, 07=Invalid clientTxnId, 08=Invalid SabPaisa txnId, 09=Refund rejected, 10=Refunded, 11=Refund initiated, 12=Failed.',
         'Log the encrypted response string to assist SabPaisa support if decryption fails.'
       ]
     },
     responseParameters: transactionEnquiryResponseParameters,
     sampleEncryptedResponse: transactionEnquirySampleEncryptedResponse,
-    sampleDecryptedResponse: transactionEnquirySampleDecryptedResponse,
-    integrationVideoLink: 'https://youtu.be/d-MPz7mGSqY?si=HfAr0kA2psRuO9Lt'
+    sampleDecryptedResponse: transactionEnquirySampleDecryptedResponse
   },
   {
     id: 'refund',
@@ -230,7 +228,6 @@ export const apiReferenceKits: IntegrationKitDoc[] = [
     },
     responseParameters: refundResponseParameters,
     sampleEncryptedResponse: refundSampleEncryptedResponse,
-    sampleDecryptedResponse: refundSampleDecryptedResponse,
-    integrationVideoLink: 'https://youtu.be/HqBpn5PrnMo?si=EFwJCcfON4PAJs94'
+    sampleDecryptedResponse: refundSampleDecryptedResponse
   }
 ]

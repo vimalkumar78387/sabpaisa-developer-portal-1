@@ -236,7 +236,10 @@ const FlowList = ({ items }: { items: FlowListItem[] }) => (
 
 const KitSections = ({ kit }: { kit: IntegrationKitDoc }) => {
   const [isOnline, setIsOnline] = useState(true)
-  const embedUrl = getEmbedUrl(kit.integrationVideoLink)
+  const suppressMedia = kit.id === 'transaction-enquiry' || kit.id === 'refund'
+  const embedUrl = suppressMedia ? null : getEmbedUrl(kit.integrationVideoLink)
+  const hideSampleLink = suppressMedia
+  const showSampleLink = Boolean(kit.sampleCodeLink) && !hideSampleLink
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -358,15 +361,17 @@ const KitSections = ({ kit }: { kit: IntegrationKitDoc }) => {
         </div>
       )}
 
-      <SubSection title="Sample code link">
-        <Link
-          href={kit.sampleCodeLink}
-          target="_blank"
-          className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/15"
-        >
-          View reference implementation
-        </Link>
-      </SubSection>
+      {showSampleLink && (
+        <SubSection title="Sample code link">
+          <Link
+            href={kit.sampleCodeLink}
+            target="_blank"
+            className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/15"
+          >
+            View reference implementation
+          </Link>
+        </SubSection>
+      )}
 
       <SubSection title="Production and Live URL">
         <div className="grid gap-4 sm:grid-cols-2">

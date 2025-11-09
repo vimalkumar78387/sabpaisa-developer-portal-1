@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import type { ComponentType } from 'react'
 import Link from 'next/link'
 import {
   Play,
@@ -14,6 +15,11 @@ import {
   ShieldCheck,
   Server,
   Clock3,
+  CreditCard,
+  Webhook as WebhookIcon,
+  Banknote,
+  Search,
+  RefreshCcw,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -22,6 +28,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ApiTester } from '@/components/playground/api-tester'
 import { RefundApiTester } from '@/components/playground/refund-api-tester'
+import { WebhookTester } from '@/components/playground/webhook-tester'
 import { cn } from '@/lib/utils'
 
 const apiEndpoints = [
@@ -36,10 +43,11 @@ const apiEndpoints = [
 ]
 
 const runtimeSignals = [
-  { title: 'Environment', value: 'Sandbox', hint: 'Mirrors production for UPI, cards, and mandates', icon: Server },
+  { title: 'Environment', value: 'Sandbox', hint: 'AES256 + HMAC encryption mirrors live cipher paths', icon: Server },
   { title: 'Security posture', value: 'PCI L1', hint: 'Token vaulting, HSM-backed keys, and anomaly alerts', icon: ShieldCheck },
   { title: 'Latency (p95)', value: '182ms', hint: 'Measured from Mumbai edge over the last hour', icon: Clock3 },
 ]
+
 
 const quickActions = [
   { title: 'Test Payment Flow', description: 'Create a sample payment and test the complete flow', action: 'Try Now', category: 'payments' },
@@ -48,6 +56,14 @@ const quickActions = [
   { title: 'Transaction Enquiry', description: 'Decrypt statusTransEncData and check a transaction status instantly.', action: 'Check Status', category: 'transaction-enquiry' },
   { title: 'Refund API', description: 'Encrypt refundQuery, trigger a refund request, and decrypt the live response.', action: 'Open Refund Tester', category: 'refunds' },
 ]
+
+const quickActionIcons: Record<string, ComponentType<{ className?: string }>> = {
+  payments: CreditCard,
+  webhooks: WebhookIcon,
+  enach: Banknote,
+  'transaction-enquiry': Search,
+  refunds: RefreshCcw,
+}
 
 export default function PlaygroundPage() {
   const [activeSection, setActiveSection] = useState('overview')
@@ -63,19 +79,26 @@ export default function PlaygroundPage() {
   return (
     <div className="container mx-auto px-6 py-8">
       <div className="max-w-7xl">
-        <div className="mb-8">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="rounded-lg bg-primary/10 p-2">
-              <Play className="h-6 w-6 text-primary" />
+        <div className="mb-10">
+          <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-background to-background p-8 shadow-lg">
+            <div className="flex flex-wrap items-start gap-4">
+              <div className="rounded-2xl bg-primary/15 p-4">
+                <Play className="h-8 w-8 text-primary" />
+              </div>
+              <div className="flex-1 space-y-2">
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-4xl font-bold">API Playground</h1>
+                  <Badge variant="secondary" className="rounded-full">Interactive</Badge>
+                </div>
+                <p className="text-lg text-muted-foreground">
+                  Compose requests, encrypt payloads, and inspect responses with live telemetry. Built to mirror SabPaisa’s
+                  production flow before you flip the switch.
+                </p>
+              </div>
             </div>
-            <h1 className="text-4xl font-bold">API Playground</h1>
-            <Badge variant="secondary">Interactive</Badge>
           </div>
-          <p className="mb-6 text-xl text-muted-foreground">
-            Test SabPaisa APIs interactively with real-time examples and responses. Perfect for development and integration testing.
-          </p>
 
-          <div className="mb-4 flex gap-2">
+          <div className="mt-10 mb-6 flex gap-3">
             <Button
               variant={activeSection === 'overview' ? 'default' : 'outline'}
               onClick={() => setActiveSection('overview')}
@@ -120,20 +143,26 @@ export default function PlaygroundPage() {
                 Quick Actions
               </h2>
               <div className="grid gap-6 md:grid-cols-3">
-                {quickActions.map((action, index) => (
-                  <Card
-                    key={action.title}
-                    className={cn(
-                      'interactive-card group relative cursor-pointer overflow-hidden shadow-sm transition hover:-translate-y-1 hover:shadow-xl',
-                      'animate-fadeInUp'
-                    )}
-                    style={{ animationDelay: `${(index + 1) * 150}ms` }}
-                    onClick={() => {
-                      setActiveSection('interactive')
-                      setSelectedCategory(action.category === 'webhooks' ? 'payments' : action.category)
-                    }}
-                  >
-                    <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-primary/5 to-transparent transition-transform duration-1000 ease-in-out group-hover:translate-x-full" />
+                {quickActions.map((action, index) => {
+                  const IconComponent = quickActionIcons[action.category] ?? Rocket
+                  return (
+                    <Card
+                      key={action.title}
+                      className={cn(
+                        'interactive-card group relative cursor-pointer overflow-hidden shadow-sm transition hover:-translate-y-1 hover:shadow-xl',
+                        'animate-fadeInUp'
+                      )}
+                      style={{ animationDelay: `${(index + 1) * 150}ms` }}
+                      onClick={() => {
+                        setActiveSection('interactive')
+                        setSelectedCategory(action.category)
+                      }}
+                    >
+                      <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-primary/5 to-transparent transition-transform duration-1000 ease-in-out group-hover:translate-x-full" />
+                      <IconComponent
+                        className="pointer-events-none absolute -right-1 -top-1 h-12 w-12 text-primary/20 transition-transform duration-500 group-hover:scale-110"
+                        aria-hidden="true"
+                      />
                     <CardHeader className="relative z-10">
                       <CardTitle className="flex items-center gap-2 text-lg transition-colors duration-300 group-hover:text-primary">
                         {action.title}
@@ -160,7 +189,8 @@ export default function PlaygroundPage() {
                       </Button>
                     </CardContent>
                   </Card>
-                ))}
+                  )
+                })}
               </div>
             </div>
 
@@ -172,9 +202,7 @@ export default function PlaygroundPage() {
                   <TabsTrigger value="refunds">Refunds</TabsTrigger>
                   <TabsTrigger value="enach">E-NACH</TabsTrigger>
                   <TabsTrigger value="transaction-enquiry">Txn Enquiry</TabsTrigger>
-                  <TabsTrigger value="webhooks" disabled>
-                    Webhooks
-                  </TabsTrigger>
+                  <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
                 </TabsList>
                 <TabsContent value={selectedCategory} className="mt-6">
                   <div className="grid gap-4 md:grid-cols-2">
@@ -206,6 +234,8 @@ export default function PlaygroundPage() {
           <div id="interactive">
             {selectedCategory === 'refunds' ? (
               <RefundApiTester />
+            ) : selectedCategory === 'webhooks' ? (
+              <WebhookTester />
             ) : (
               <ApiTester selectedCategory={selectedCategory} />
             )}
