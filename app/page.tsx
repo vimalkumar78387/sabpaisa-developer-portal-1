@@ -10,7 +10,6 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { FeatureCard } from '@/components/ui/feature-card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   ArrowRight,
   Building2,
@@ -261,79 +260,35 @@ const faqSchema = {
   })),
 }
 
-type HeroSnippet = {
-  id: string
-  label: string
-  description: string
-  language: string
-  code: string
+const heroSampleSnippet = {
+  label: 'REST',
+  language: 'typescript',
+  description: 'Create a checkout intent with guaranteed idempotency.',
+  code: [
+    "import { SabPaisa } from '@sabpaisa/payments'",
+    '',
+    'const sabpaisa = new SabPaisa({',
+    '  clientCode: process.env.SABPAISA_CLIENT_CODE!,',
+    '  clientSecret: process.env.SABPAISA_CLIENT_SECRET!,',
+    "  environment: 'sandbox',",
+    '})',
+    '',
+    'const intent = await sabpaisa.payments.create({',
+    '  amount: 125000,',
+    "  currency: 'INR',",
+    "  orderId: 'order_82XT92',",
+    '  customer: {',
+    "    name: 'Aarav Malhotra',",
+    "    email: 'aarav@example.com',",
+    "    phone: '9876543210',",
+    '  },',
+    '  returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payments/success`,',
+    '  webhookUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/webhooks/payments`,',
+    '})',
+    '',
+    'console.log(intent.paymentUrl)',
+  ].join('\n'),
 }
-
-const heroSnippets: HeroSnippet[] = [
-  {
-    id: 'rest',
-    label: 'REST',
-    description: 'Create a checkout intent with guaranteed idempotency.',
-    language: 'typescript',
-    code: [
-      "import { SabPaisa } from '@sabpaisa/payments'",
-      '',
-      'const sabpaisa = new SabPaisa({',
-      '  clientCode: process.env.SABPAISA_CLIENT_CODE!,',
-      '  clientSecret: process.env.SABPAISA_CLIENT_SECRET!,',
-      "  environment: 'sandbox',",
-      '})',
-      '',
-      'const intent = await sabpaisa.payments.create({',
-      '  amount: 125000,',
-      "  currency: 'INR',",
-      "  orderId: 'order_82XT92',",
-      '  customer: {',
-      "    name: 'Aarav Malhotra',",
-      "    email: 'aarav@example.com',",
-      "    phone: '9876543210',",
-      '  },',
-      '  returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payments/success`,',
-      '  webhookUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/webhooks/payments`,',
-      '})',
-      '',
-      'console.log(intent.paymentUrl)',
-    ].join('\n'),
-  },
-  {
-    id: 'graphql',
-    label: 'GraphQL',
-    description: 'Listen to settlement events as they happen.',
-    language: 'graphql',
-    code: [
-      'subscription PaymentSettled {',
-      '  paymentSettled(environment: SANDBOX) {',
-      '    paymentId',
-      '    status',
-      '    metadata {',
-      '      orderId',
-      '      amount',
-      '    }',
-      '  }',
-      '}',
-    ].join('\n'),
-  },
-  {
-    id: 'cli',
-    label: 'CLI',
-    description: 'Automate payment link generation directly from CI/CD.',
-    language: 'bash',
-    code: [
-      'sabpaisa payments:create \\',
-      '  --amount 125000 \\',
-      '  --currency INR \\',
-      '  --customer.name "Aarav Malhotra" \\',
-      '  --customer.email aarav@example.com \\',
-      '  --webhook https://app.example.com/webhooks/payments \\',
-      '  --mode sandbox',
-    ].join('\n'),
-  },
-]
 
 export default function HomePage() {
   useEffect(() => {
@@ -358,10 +313,8 @@ export default function HomePage() {
     }
   }, [])
 
-  const [activeSnippet, setActiveSnippet] = useState(heroSnippets[0].id)
   const [copiedSnippet, setCopiedSnippet] = useState<string | null>(null)
 
-  const activeSnippetData = heroSnippets.find((snippet) => snippet.id === activeSnippet) ?? heroSnippets[0]
 
   const handleCopySnippet = async (snippetId: string, code: string) => {
     try {
@@ -489,51 +442,36 @@ export default function HomePage() {
                     </span>
                     <span className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-primary">
                       <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5">
-                        {activeSnippetData.label}
+                        {heroSampleSnippet.label}
                       </span>
-                      {activeSnippetData.language.toUpperCase()}
+                      {heroSampleSnippet.language.toUpperCase()}
                     </span>
                   </div>
-                  <Tabs value={activeSnippet} onValueChange={setActiveSnippet}>
-                    <TabsList className="mt-4 grid grid-cols-3 gap-1 rounded-full border border-white/20 bg-white/10 p-1 text-xs font-medium text-muted-foreground shadow-inner dark:bg-white/5">
-                      {heroSnippets.map((snippet) => (
-                        <TabsTrigger
-                          key={snippet.id}
-                          value={snippet.id}
-                          className="rounded-full px-3 py-2 capitalize transition data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                  <div className="mt-4">
+                    <div className="relative rounded-2xl border border-white/10 bg-slate-950/95 p-4 text-sm text-slate-100 shadow-inner">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="absolute right-4 top-4 h-8 w-8 rounded-full border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
+                        onClick={() => handleCopySnippet('hero-sample', heroSampleSnippet.code)}
+                      >
+                        {copiedSnippet === 'hero-sample' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                      <pre className="max-h-[260px] overflow-x-auto whitespace-pre-wrap font-mono text-xs leading-6 text-slate-200">
+                        {heroSampleSnippet.code}
+                      </pre>
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+                        <span>{heroSampleSnippet.description}</span>
+                        <Badge
+                          variant="outline"
+                          className="border-white/20 bg-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-white"
                         >
-                          {snippet.label}
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
-                    {heroSnippets.map((snippet) => (
-                      <TabsContent key={snippet.id} value={snippet.id} className="mt-4 focus-visible:outline-none">
-                        <div className="relative rounded-2xl border border-white/10 bg-slate-950/95 p-4 text-sm text-slate-100 shadow-inner">
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            className="absolute right-4 top-4 h-8 w-8 rounded-full border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
-                            onClick={() => handleCopySnippet(snippet.id, snippet.code)}
-                          >
-                            {copiedSnippet === snippet.id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                          </Button>
-                          <pre className="max-h-[260px] overflow-x-auto whitespace-pre-wrap font-mono text-xs leading-6 text-slate-200">
-                            {snippet.code}
-                          </pre>
-                          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-                            <span>{snippet.description}</span>
-                            <Badge
-                              variant="outline"
-                              className="border-white/20 bg-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-white"
-                            >
-                              {snippet.language}
-                            </Badge>
-                          </div>
-                        </div>
-                      </TabsContent>
-                    ))}
-                  </Tabs>
+                          {heroSampleSnippet.language}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
                   <div className="mt-6 grid gap-4 sm:grid-cols-3">
                     {heroMetrics.map((metric, metricIdx) => (
                       <AnimatedDiv
