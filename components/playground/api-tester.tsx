@@ -53,32 +53,73 @@ const baseHeaderTemplate: HeaderEntry[] = [
 const cloneHeaders = (entries: HeaderEntry[]) =>
   entries.map((entry) => ({ ...entry }))
 
+const stringifySamplePayload = (payload?: unknown) => {
+  if (!payload) return ''
+  return typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2)
+}
+
+const normalizeAssignmentExpression = (raw: string) => {
+  const match = raw.match(/^[a-zA-Z_$][\w$]*\s*=\s*(.+)$/s)
+  return match ? match[1].trim() : raw
+}
+
+const stripWrappingQuotes = (value: string) => value.replace(/^\s*['"]|['"]\s*$/g, '')
+
+const parseUrlEncodedString = (value: string) => {
+  const cleaned = stripWrappingQuotes(normalizeAssignmentExpression(value.trim()))
+  const params = new URLSearchParams(cleaned)
+  const result: Record<string, string> = {}
+  params.forEach((paramValue, key) => {
+    if (key) {
+      result[key] = paramValue
+    }
+  })
+  if (Object.keys(result).length === 0) {
+    throw new Error('Invalid form payload. Provide key=value pairs separated by & characters.')
+  }
+  return result
+}
+
+const parseJsonPayload = (input: string) => {
+  const parsed = JSON.parse(normalizeAssignmentExpression(input.trim()))
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error('JSON payload must resolve to an object.')
+  }
+  return parsed as Record<string, unknown>
+}
+
+const parseRequestBodyInput = (input: string) => {
+  const trimmed = input.trim()
+  if (!trimmed) throw new Error('Request payload is empty.')
+
+  const firstChar = trimmed.trimStart()[0]
+  if (firstChar === '{' || firstChar === '[') {
+    return parseJsonPayload(trimmed)
+  }
+
+  try {
+    return parseJsonPayload(trimmed)
+  } catch {
+    return parseUrlEncodedString(trimmed)
+  }
+}
+
 const apiEndpoints: ApiEndpoint[] = [
   {
     id: 'create-payment',
     method: 'POST',
-    endpoint: '/api/v1/payments/create',
+    endpoint: '/SabPaisa/sabPaisaInit?v=1',
     title: 'Create Payment',
-    description: 'Initiate a new payment request',
+    description: 'Trigger the SabPaisa hosted checkout session.',
     category: 'payments',
     requiresAuth: true,
-    samplePayload: {
-      amount: 100000,
-      currency: 'INR',
-      orderId: 'order_123456',
-      customerInfo: {
-        name: 'John Doe',
-        email: 'john@example.com',
-        phone: '9876543210'
-      },
-      returnUrl: 'https://yourapp.com/success',
-      webhookUrl: 'https://yourapp.com/webhook'
-    },
+    defaultHeaders: [
+      { key: 'Content-Type', value: 'application/x-www-form-urlencoded' },
+      { key: 'Accept', value: 'text/html' }
+    ],
+    samplePayload: 'clientCode=DJ020&encData=PASTE_YOUR_ENCRYPTED_STRING&channelId=W',
     sampleResponse: {
-      success: true,
-      paymentId: 'pay_abc123',
-      paymentUrl: 'https://checkout.sabpaisa.com/pay/abc123',
-      status: 'pending'
+      message: 'HTML checkout returned by SabPaisa.'
     }
   },
   {
@@ -284,7 +325,7 @@ const environments = [
   {
     id: 'sandbox',
     label: 'Sandbox',
-    baseUrl: 'https://sandbox.sabpaisa.com',
+    baseUrl: 'https://stage-securepay.sabpaisa.in',
     badge: 'Recommended',
     description: 'Synthetic data with real-time webhook simulation.'
   },
@@ -314,7 +355,7 @@ export function ApiTester({ selectedCategory = 'payments' }: ApiTesterProps) {
   )
   const [environmentId, setEnvironmentId] = useState<EnvironmentId>('sandbox')
   const [requestPayload, setRequestPayload] = useState(
-    JSON.stringify(selectedEndpoint.samplePayload || {}, null, 2)
+    stringifySamplePayload(selectedEndpoint.samplePayload)
   )
   const [pathParams, setPathParams] = useState<Record<string, string>>(() => {
     const matches = selectedEndpoint.endpoint.match(/\{([^}]+)\}/g)
@@ -347,6 +388,7 @@ export function ApiTester({ selectedCategory = 'payments' }: ApiTesterProps) {
 
   const activeEnvironment = environments.find((env) => env.id === environmentId) ?? environments[0]
   const isTransactionEnquiry = selectedEndpoint.id === 'transaction-enquiry'
+  const isHostedCheckoutRequest = selectedEndpoint.id === 'create-payment'
 
   const headers = headerEntries.reduce<Record<string, string>>((acc, entry) => {
     if (entry.key.trim()) {
@@ -367,7 +409,7 @@ export function ApiTester({ selectedCategory = 'payments' }: ApiTesterProps) {
     if (!endpoint) return
 
     setSelectedEndpoint(endpoint)
-    setRequestPayload(JSON.stringify(endpoint.samplePayload || {}, null, 2))
+    setRequestPayload(stringifySamplePayload(endpoint.samplePayload))
     setResponse(null)
     setError(null)
     setRetryCount(0)
@@ -527,41 +569,59 @@ export function ApiTester({ selectedCategory = 'payments' }: ApiTesterProps) {
 
   const performRealRequest = async () => {
     const requiresBody = selectedEndpoint.method === 'POST' || selectedEndpoint.method === 'PUT'
-    let parsedBody: unknown = undefined
+    let parsedBody: Record<string, unknown> | undefined
+    let bodyPayload: BodyInit | undefined
 
     if (requiresBody) {
-      try {
-        parsedBody = JSON.parse(requestPayload)
-      } catch (parseError) {
-        throw new Error('Invalid JSON in request payload')
-      }
-      if (
-        isTransactionEnquiry &&
-        (!parsedBody ||
-          typeof parsedBody !== 'object' ||
-          !('statusTransEncData' in (parsedBody as Record<string, unknown>)))
-      ) {
-        throw new Error('statusTransEncData missing. Click “Encrypt & build payload” first.')
+      if (isHostedCheckoutRequest) {
+        parsedBody = parseRequestBodyInput(requestPayload)
+        const params = new URLSearchParams()
+        Object.entries(parsedBody).forEach(([key, value]) => {
+          if (value === undefined || value === null) return
+          params.append(key, String(value))
+        })
+        bodyPayload = params.toString()
+      } else {
+        try {
+          parsedBody = JSON.parse(requestPayload)
+        } catch (parseError) {
+          throw new Error('Invalid JSON in request payload')
+        }
+        if (
+          isTransactionEnquiry &&
+          (!parsedBody || !('statusTransEncData' in parsedBody))
+        ) {
+          throw new Error('statusTransEncData missing. Click “Encrypt & build payload” first.')
+        }
+        bodyPayload = JSON.stringify(parsedBody)
       }
     }
 
     const started = performance.now()
-    const targetUrl = isTransactionEnquiry ? `/api/txnenquiry/${environmentId}` : requestUrl
+    const targetUrl = isTransactionEnquiry
+      ? `/api/txnenquiry/${environmentId}`
+      : isHostedCheckoutRequest
+      ? `/api/payment/init?env=${environmentId}`
+      : requestUrl
     let res: Response
+    const outboundHeaders = { ...headers }
+    if (isHostedCheckoutRequest) {
+      outboundHeaders['Content-Type'] = 'application/x-www-form-urlencoded'
+      outboundHeaders['Accept'] = 'text/html'
+    }
 
     try {
       if (isTransactionEnquiry) {
         res = await fetch(targetUrl, {
           method: 'POST',
-          headers,
+          headers: outboundHeaders,
           body: JSON.stringify(parsedBody ?? {})
         })
       } else {
         res = await fetch(targetUrl, {
           method: selectedEndpoint.method,
-          headers,
-          body: requiresBody ? JSON.stringify(parsedBody) : undefined,
-          mode: 'cors'
+          headers: outboundHeaders,
+          body: requiresBody ? bodyPayload : undefined
         })
       }
     } catch (networkError) {
@@ -579,16 +639,18 @@ export function ApiTester({ selectedCategory = 'payments' }: ApiTesterProps) {
     res.headers.forEach((value, key) => {
       headerObj[key] = value
     })
+    const contentType = res.headers.get('content-type') ?? ''
+    headerObj['content-type'] = contentType
 
     let data: any = null
-    try {
-      data = await res.json()
-    } catch {
+    if (contentType.includes('application/json')) {
       try {
-        data = await res.text()
+        data = await res.json()
       } catch {
         data = null
       }
+    } else {
+      data = await res.text()
     }
 
     setResponse({
@@ -629,7 +691,7 @@ export function ApiTester({ selectedCategory = 'payments' }: ApiTesterProps) {
     setDecryptionError(null)
 
     try {
-      if (isTransactionEnquiry) {
+      if (isTransactionEnquiry || isHostedCheckoutRequest) {
         await performRealRequest()
         return
       }
@@ -1018,12 +1080,19 @@ export function ApiTester({ selectedCategory = 'payments' }: ApiTesterProps) {
             {(selectedEndpoint.method === 'POST' || selectedEndpoint.method === 'PUT') && (
               <div className="space-y-2">
                 <Label>Request Body</Label>
+                {isHostedCheckoutRequest && (
+                  <p className="text-xs text-muted-foreground">
+                    Paste either raw form data (<code>clientCode=DJ020&amp;encData=...</code>) or a JSON object with
+                    <code>clientCode</code> and <code>encData</code>. The request will be sent as
+                    <code> application/x-www-form-urlencoded</code> to the SabPaisa gateway.
+                  </p>
+                )}
                 <Textarea
                   value={requestPayload}
                   onChange={(e) => setRequestPayload(e.target.value)}
                   rows={10}
                   className="font-mono text-sm"
-                  placeholder="Enter JSON payload..."
+                  placeholder={isHostedCheckoutRequest ? 'clientCode=DJ020&encData=...' : 'Enter JSON payload...'}
                 />
               </div>
             )}
@@ -1170,7 +1239,15 @@ export function ApiTester({ selectedCategory = 'payments' }: ApiTesterProps) {
             )}
 
             {response && (
-              <Tabs defaultValue="response" className="w-full">
+              <>
+                {isHostedCheckoutRequest && (
+                  <div className="mb-4 rounded-2xl border border-primary/30 bg-primary/5 p-3 text-xs leading-5 text-primary">
+                    SabPaisa returns the entire hosted checkout HTML for <code>create-payment</code>. We stream that markup
+                    directly into the iframe below so you can preview the redirect without pop-ups. Use "Copy HTML" if you'd
+                    like to drop the response in a new tab or template.
+                  </div>
+                )}
+                <Tabs defaultValue="response" className="w-full">
                 <TabsList>
                   <TabsTrigger value="response">Response</TabsTrigger>
                   <TabsTrigger value="headers">Headers</TabsTrigger>
@@ -1179,21 +1256,43 @@ export function ApiTester({ selectedCategory = 'payments' }: ApiTesterProps) {
                 </TabsList>
                 
                 <TabsContent value="response" className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium">Response Body</h4>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(JSON.stringify(response.data || response, null, 2))}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <CodeBlock
-                    code={JSON.stringify(response.data || response, null, 2)}
-                    language="json"
-                    showLineNumbers={false}
-                  />
+                  {isHostedCheckoutRequest && typeof response.data === 'string' && (response.headers?.['content-type'] ?? '').includes('text/html') ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-medium">HTML Response</h4>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(response.data)}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <iframe
+                        title="SabPaisa Checkout Preview"
+                        srcDoc={response.data}
+                        className="h-[520px] w-full rounded-2xl border border-border/60 bg-muted/10"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-medium">Response Body</h4>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(JSON.stringify(response.data || response, null, 2))}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <CodeBlock
+                        code={JSON.stringify(response.data || response, null, 2)}
+                        language="json"
+                        showLineNumbers={false}
+                      />
+                    </>
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="headers" className="space-y-4">
@@ -1249,6 +1348,7 @@ export function ApiTester({ selectedCategory = 'payments' }: ApiTesterProps) {
                   </ol>
                 </TabsContent>
               </Tabs>
+              </>
             )}
             {isTransactionEnquiry && response && (
               <div className="mt-6 space-y-3 rounded-xl border border-primary/30 bg-primary/5 p-4">
