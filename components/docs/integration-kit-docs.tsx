@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { AlertTriangle, Server, ShieldCheck } from 'lucide-react'
 
@@ -59,13 +60,18 @@ type IntegrationKitDocsProps = {
 }
 
 const SectionHeading = ({ children }: { children: React.ReactNode }) => (
-  <h3 className="text-lg font-semibold text-foreground">{children}</h3>
+  <div className="flex items-center gap-3">
+    <span className="inline-block h-8 w-1.5 rounded-full bg-gradient-to-b from-primary/90 to-primary/60" />
+    <h3 className="text-lg font-semibold text-foreground">{children}</h3>
+  </div>
 )
 
 const SubSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section className="space-y-3">
-    <SectionHeading>{title}</SectionHeading>
-    {children}
+  <section className="rounded-3xl border border-border/60 bg-background/80 p-6 shadow-sm shadow-black/5 backdrop-blur">
+    <div className="space-y-4">
+      <SectionHeading>{title}</SectionHeading>
+      <div className="space-y-4 text-sm leading-6 text-muted-foreground">{children}</div>
+    </div>
   </section>
 )
 
@@ -96,30 +102,30 @@ const ParameterTable = ({
   const includeRequiredColumn = data.length > 0 && 'required' in data[0]
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-border/60 bg-background/60">
+    <div className="overflow-hidden rounded-3xl border border-border/60 bg-background/70 shadow-sm">
       <table className="w-full text-left text-sm">
-        <caption className="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <caption className="px-6 py-4 text-start text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {caption}
         </caption>
-        <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+        <thead className="bg-muted/30 text-xs uppercase tracking-wide text-muted-foreground">
           <tr>
-            <th className="px-4 py-3 font-medium text-foreground">Parameter</th>
-            <th className="px-4 py-3 font-medium text-foreground">Type</th>
+            <th className="px-6 py-3 font-medium text-foreground">Parameter</th>
+            <th className="px-6 py-3 font-medium text-foreground">Type</th>
             {includeRequiredColumn && (
-              <th className="px-4 py-3 font-medium text-foreground">Required</th>
+              <th className="px-6 py-3 font-medium text-foreground">Required</th>
             )}
-            <th className="px-4 py-3 font-medium text-foreground">Description</th>
+            <th className="px-6 py-3 font-medium text-foreground">Description</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-border/60">
+        <tbody className="divide-y divide-border/60 bg-background/80">
           {data.map((param) => (
             <tr key={param.name}>
-              <td className="px-4 py-3 font-medium text-foreground">{param.name}</td>
-              <td className="px-4 py-3 text-muted-foreground">{param.type}</td>
+              <td className="px-6 py-4 font-medium text-foreground">{param.name}</td>
+              <td className="px-6 py-4 text-muted-foreground">{param.type}</td>
               {includeRequiredColumn && 'required' in param && (
-                <td className="px-4 py-3 text-muted-foreground">{param.required ? 'Yes' : 'No'}</td>
+                <td className="px-6 py-4 text-muted-foreground">{param.required ? 'Yes' : 'No'}</td>
               )}
-              <td className="px-4 py-3 text-muted-foreground">{param.description}</td>
+              <td className="px-6 py-4 text-muted-foreground">{param.description}</td>
             </tr>
           ))}
         </tbody>
@@ -136,7 +142,7 @@ const CodeBlock = ({
   language?: string
 }) => (
   <pre className={cn(
-    'overflow-x-auto rounded-2xl border border-border/60 bg-slate-950/90 p-4 text-sm text-slate-100',
+    'overflow-x-auto rounded-3xl border border-border/60 bg-slate-950/90 p-4 text-sm text-slate-100 shadow-inner shadow-black/40',
     language !== 'text' && 'language-' + language
   )}>
     <code>{content}</code>
@@ -550,31 +556,212 @@ const reactNativeSummaryCards: SummaryCard[] = [
   }
 ]
 
+const odooSummaryCards: SummaryCard[] = [
+  {
+    title: 'System prerequisites',
+    icon: Server,
+    items: [
+      { label: 'Odoo 18.0 (or compatible) running instance' },
+      { label: 'Access to server filesystem for addons' },
+      { label: 'Ability to restart Odoo services' }
+    ]
+  },
+  {
+    title: 'SabPaisa requirements',
+    icon: ShieldCheck,
+    items: [
+      { label: 'Active SabPaisa merchant account' },
+      { label: 'Client code, username, password, auth key & IV' },
+      { label: 'Staging and live PG URLs' }
+    ]
+  }
+]
+
+const iosSummaryCards: SummaryCard[] = [
+  {
+    title: 'Environment readiness',
+    icon: Server,
+    items: [
+      { label: 'Mac with Xcode 13+ installed' },
+      { label: 'Target iOS 11 or higher' },
+      { label: 'Swift Package Manager configured' }
+    ]
+  },
+  {
+    title: 'SabPaisa resources',
+    icon: ShieldCheck,
+    items: [
+      { label: 'SabPaisa Swift package URL + Alamofire dependency' },
+      { label: 'Merchant credentials (client code, auth key/IV, username/password)' },
+      { label: 'Access to staging and live init URLs' }
+    ]
+  }
+]
+
 type FlowListItem = {
   title: string
   description?: string
 }
 
 const FlowList = ({ items }: { items: FlowListItem[] }) => (
-  <ol className="space-y-4">
+  <ol className="grid gap-4 md:grid-cols-2">
     {items.map((item, index) => (
       <li
         key={`${item.title}-${index}`}
-        className="rounded-2xl border border-border/60 bg-background/90 p-5 shadow-sm"
+        className="relative h-full rounded-3xl border border-border/60 bg-gradient-to-br from-background via-background/95 to-muted/30 p-5 shadow-sm shadow-black/5"
       >
         <div className="flex items-start gap-4">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-sm font-semibold text-primary">
             {String(index + 1).padStart(2, '0')}
           </span>
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-foreground">{item.title}</p>
-            {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
+          <div className="space-y-1 text-sm">
+            <p className="font-semibold text-foreground">{item.title}</p>
+            {item.description && <p className="text-muted-foreground">{item.description}</p>}
           </div>
         </div>
       </li>
     ))}
   </ol>
 )
+
+const androidPaymentStatusCodes = [
+  { code: '0000', description: 'Success', action: 'Update transaction as successful.' },
+  { code: '0300', description: 'Failed', action: 'Update transaction as failed.' },
+  { code: '0100', description: 'Initiated / Not Completed', action: 'Mark transaction as not completed.' },
+  { code: '0200', description: 'Aborted', action: 'Update transaction as aborted.' },
+  { code: '0999', description: 'Unknown Response', action: 'Make a request using transaction enquiry.' },
+  { code: '0400 (Challan)', description: 'CHALLAN_GENERATED', action: 'Update challan status as generated and follow up later.' },
+  { code: '404', description: 'TRANSACTION NOT FOUND', action: 'ClientTxnId not found; update as failed.' }
+]
+
+const androidPrerequisites = [
+  'Android Studio 4.0 or higher installed.',
+  'API level 21 (Android 5.0) or higher for the app.',
+  'sabaPaisapaymentgateway.aar file provided by SabPaisa.',
+  'Access to SabPaisa UAT credentials.'
+]
+
+const androidSummaryCards: SummaryCard[] = [
+  {
+    title: 'Environment readiness',
+    icon: Server,
+    items: [
+      { label: 'Android Studio 4.0+ with API level 21+' },
+      { label: 'Java/Kotlin module configured in the project' },
+      { label: 'Gradle sync succeeds after adding the SDK' }
+    ]
+  },
+  {
+    title: 'SabPaisa resources',
+    icon: ShieldCheck,
+    items: [
+      { label: 'sabaPaisapaymentgateway.aar supplied by SabPaisa' },
+      { label: 'Sandbox credentials for UAT verification' },
+      { label: 'Staging and production init URLs ready' }
+    ]
+  }
+]
+
+const androidProcessFlow = [
+  'The payer enters payment details on the merchant interface.',
+  'Payer selects the payment method and confirms payment.',
+  'Payer provides verification details (OTP, card info, UPI PIN).',
+  'SabPaisa processes the payment and sends the response back.',
+  'Merchant app/platform processes the response and updates status.'
+]
+
+const androidIntegrationSteps = [
+  {
+    title: '1. Add SDK',
+    description:
+      'Import the provided .aar file as a library dependency (Open Module Settings → Add → AAR dependency).',
+    details: ['Ensure the SabPaisa SDK appears under Module dependencies.']
+  },
+  {
+    title: '2. Sync the Project',
+    description: 'Sync Gradle so the SDK dependency is fully resolved.'
+  },
+  {
+    title: '3. UI Implementation',
+    description: 'Add a “Pay Now” button (or preferred UI element) and call the payment launcher from its click handler.'
+  },
+  {
+    title: '4. SDK Initialization',
+    description: 'Configure SabPaisaPaymentGateway with payer details and SabPaisa credentials.',
+    java: `private void initiatePayment() {
+    SabPaisaPaymentGateway config = new SabPaisaPaymentGateway();
+    config.setPayerName("bhargava");
+    config.setPayerEmail("test@gmail.com");
+    config.setPayerMobile("1234567890");
+    config.setClientTxnId(generateShortUUID());
+    config.setAmount("1.00");
+    config.setClientCode("TM001");
+    config.setTransUserName("spuser_2013");
+    config.setTransUserPassword("RIADA_SP336");
+    config.setSabPaisaUrl("https://stage-securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1");
+    config.setAuthKey("kaY9AIhuJZNvKGp2");
+    config.setAuthIV("YN2v8qQcU3rGfA1y");
+    Intent intent = new Intent(this, PaymentGatewayActivity.class);
+    intent.putExtra(PaymentGatewayActivity.EXTRA_PAYMENT_CONFIG, config);
+    startActivityForResult(intent, PAYMENT_REQUEST_CODE);
+}`,
+    kotlin: `private fun initiatePayment() {
+    val config = SabPaisaPaymentGateway().apply {
+        setPayerName("bhargava")
+        setPayerEmail("test@gmail.com")
+        setPayerMobile("1234567890")
+        setClientTxnId(generateShortUUID())
+        setAmount("1.00")
+        setClientCode("DJ020")
+        setTransUserName("DJL754@sp")
+        setTransUserPassword("4q3qhgmJNM4m")
+        setSabPaisaUrl("https://stage-securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1")
+        setAuthKey("hYSilho3Dz4SAT2B")
+        setAuthIV("s8WcZ8OGw11cAUFG")
+    }
+    val intent = Intent(this, PaymentGatewayActivity::class.java)
+    intent.putExtra(PaymentGatewayActivity.EXTRA_PAYMENT_CONFIG, config)
+    startActivityForResult(intent, PAYMENT_REQUEST_CODE)
+}`
+  },
+  {
+    title: '5. Trigger Payment',
+    description: 'Call startActivityForResult(...) with PAYMENT_REQUEST_CODE and handle the result inside onActivityResult.'
+  }
+]
+
+const androidResponseHandlingJava = `@Override
+protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    if (requestCode == PAYMENT_REQUEST_CODE) {
+        if (resultCode == RESULT_OK && data != null) {
+            PaymentResponse response = data.getParcelableExtra(PaymentGatewayActivity.EXTRA_PAYMENT_RESPONSE);
+            if (response != null) {
+                showResponseScreen(response);
+            } else {
+                resetToPaymentScreen();
+            }
+        } else {
+            resetToPaymentScreen();
+        }
+    }
+}`
+
+const androidResponseHandlingKotlin = `override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (requestCode == PAYMENT_REQUEST_CODE) {
+        if (resultCode == RESULT_OK && data != null) {
+            val response: PaymentResponse? = data.getParcelableExtra(PaymentGatewayActivity.EXTRA_PAYMENT_RESPONSE)
+            if (response != null) {
+                showResponseScreen(response)
+            } else {
+                resetToPaymentScreen()
+            }
+        } else {
+            resetToPaymentScreen()
+        }
+    }
+}`
 
 function FlutterCustomSections({ kit }: { kit: IntegrationKitDoc }) {
   return (
@@ -630,12 +817,34 @@ function FlutterCustomSections({ kit }: { kit: IntegrationKitDoc }) {
         </div>
       </SubSection>
 
-      <SubSection title="Pre-requisite steps for integration">
-        <ul className="list-disc space-y-1 pl-4 text-sm">
-          {flutterPrerequisites.map((item) => (
-            <li key={item}>{item}</li>
+      {androidSummaryCards.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {androidSummaryCards.map((card) => (
+            <div key={card.title} className="rounded-2xl border border-border/60 bg-background/90 p-5 shadow-sm">
+              <div className="flex items-center gap-3 text-foreground">
+                <card.icon className="h-5 w-5 text-primary" />
+                <h4 className="text-sm font-semibold">{card.title}</h4>
+              </div>
+              <ul className="mt-3 space-y-2 text-muted-foreground">
+                {card.items.map((item) =>
+                  item.href ? (
+                    <li key={item.label}>
+                      <Link href={item.href} target="_blank" className="text-primary hover:underline">
+                        {item.label}
+                      </Link>
+                    </li>
+                  ) : (
+                    <li key={item.label}>{item.label}</li>
+                  )
+                )}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
+      )}
+
+      <SubSection title="Pre-requisite steps for integration">
+        <FlowList items={flutterPrerequisites.map((title) => ({ title }))} />
       </SubSection>
 
       <SubSection title="Installation">
@@ -852,6 +1061,807 @@ function ReactNativeCustomSections({ kit }: { kit: IntegrationKitDoc }) {
     </div>
   )
 }
+
+function IOSCustomSections({ kit }: { kit: IntegrationKitDoc }) {
+  return (
+    <div className="space-y-6 text-sm">
+      <SubSection title="Introduction">
+        <p className="text-foreground">{iosIntroduction}</p>
+      </SubSection>
+
+      <SubSection title="Reference code">
+        <div className="space-y-3">
+          <div className="rounded-2xl border border-border/60 p-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <span className="font-medium text-foreground">Sample project</span>
+              <Link href={kit.sampleCodeLink} target="_blank" className="text-primary hover:underline">
+                Open iOS sample
+              </Link>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Staging URL</p>
+              <code className="mt-2 block break-all text-foreground">{kit.endpoints.sandbox}</code>
+            </div>
+            <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Live URL</p>
+              <code className="mt-2 block break-all text-foreground">{kit.endpoints.production}</code>
+            </div>
+          </div>
+        </div>
+      </SubSection>
+
+      {iosSummaryCards.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {iosSummaryCards.map((card) => (
+            <div key={card.title} className="rounded-2xl border border-border/60 bg-background/90 p-5 shadow-sm">
+              <div className="flex items-center gap-3 text-foreground">
+                <card.icon className="h-5 w-5 text-primary" />
+                <h4 className="text-sm font-semibold">{card.title}</h4>
+              </div>
+              <ul className="mt-3 space-y-2 text-muted-foreground">
+                {card.items.map((item) =>
+                  item.href ? (
+                    <li key={item.label}>
+                      <Link href={item.href} target="_blank" className="text-primary hover:underline">
+                        {item.label}
+                      </Link>
+                    </li>
+                  ) : (
+                    <li key={item.label}>{item.label}</li>
+                  )
+                )}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <SubSection title="Prerequisites">
+        <FlowList items={iosPrerequisites.map((title) => ({ title }))} />
+      </SubSection>
+
+      <SubSection title="Steps to follow">
+        <ol className="space-y-4">
+          {iosSteps.map((step) => (
+            <li key={step.title} className="rounded-2xl border border-border/60 bg-background/90 p-4 shadow-sm">
+              <p className="font-semibold text-foreground">{step.title}</p>
+              <p className="text-muted-foreground">{step.description}</p>
+              {step.code && <CodeBlock content={step.code} language="swift" />}
+            </li>
+          ))}
+        </ol>
+      </SubSection>
+
+      <SubSection title="Response variables">
+        <CodeBlock content={iosResponseVariables} language="text" />
+      </SubSection>
+
+      <SubSection title="Other points to note">
+        <ul className="space-y-4">
+          {iosOtherPoints.map((item) => (
+            <li key={item.title} className="rounded-2xl border border-border/60 bg-background/90 p-4 shadow-sm">
+              <p className="font-semibold text-foreground">{item.title}</p>
+              <p className="text-muted-foreground">{item.description}</p>
+              {item.code && <CodeBlock content={item.code} language="swift" />}
+            </li>
+          ))}
+        </ul>
+      </SubSection>
+    </div>
+  )
+}
+
+function WooCommerceCustomSections({ kit }: { kit: IntegrationKitDoc }) {
+  return (
+    <div className="space-y-6 text-sm">
+      <SubSection title="Introduction">
+        <p className="text-foreground">{wooIntroduction}</p>
+        <Link
+          href="https://srslivetech-my.sharepoint.com/:u:/g/personal/vimal_vishwakarma_sabpaisa_in/Ef8mXogjg-tFrSD62zdN7r0BN3f9RPLvHJsaG-JOsZ49yw?e=92FJrl"
+          target="_blank"
+          className="mt-3 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white hover:bg-primary/90"
+        >
+          Download Plugin
+        </Link>
+      </SubSection>
+
+      <SubSection title="Integration walkthrough">
+        <VideoEmbed url="https://youtu.be/7HjyC5m5j2g?si=6Tt9Be0s3B3DlMOy" title="WooCommerce integration walkthrough" />
+      </SubSection>
+
+      {wooSummaryCards.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {wooSummaryCards.map((card) => (
+            <div key={card.title} className="rounded-2xl border border-border/60 bg-background/90 p-5 shadow-sm">
+              <div className="flex items-center gap-3 text-foreground">
+                <card.icon className="h-5 w-5 text-primary" />
+                <h4 className="text-sm font-semibold">{card.title}</h4>
+              </div>
+              <ul className="mt-3 space-y-2 text-muted-foreground">
+                {card.items.map((item) => (
+                  <li key={item.label}>{item.label}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <SubSection title="Overview of the Integration Process">
+        <FlowList items={wooProcessSteps.map((title) => ({ title }))} />
+      </SubSection>
+
+      <SubSection title="Endpoint URLs & Downloads">
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Staging URL</p>
+              <code className="mt-2 block break-all text-foreground">{kit.endpoints.sandbox}</code>
+            </div>
+            <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Live URL</p>
+              <code className="mt-2 block break-all text-foreground">{kit.endpoints.production}</code>
+            </div>
+          </div>
+        </div>
+      </SubSection>
+
+      <SubSection title="Plugin Installation and Setup">
+        <ol className="list-decimal space-y-4 pl-5">
+          {wooInstallationSteps.map((step) => (
+            <li key={step.title}>
+              <p className="font-semibold text-foreground">{step.title}</p>
+              <p className="text-muted-foreground">{step.description}</p>
+            </li>
+          ))}
+        </ol>
+      </SubSection>
+
+      <SubSection title="Testing the Integration">
+        <p className="text-muted-foreground">
+          After configuration, place test orders using the staging URL to confirm end-to-end payment flow. Once validated, switch the
+          plugin to the live URL for production transactions.
+        </p>
+      </SubSection>
+    </div>
+  )
+}
+
+function WixCustomSections() {
+  return (
+    <div className="space-y-6 text-sm">
+      <SubSection title="Introduction">
+        <div className="space-y-3 text-foreground">
+          {wixIntroductionParagraphs.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </div>
+      </SubSection>
+
+      <SubSection title="Reference Codes & Endpoint URLs">
+        <div className="grid gap-4 md:grid-cols-2">
+          {wixReferenceEntries.map((entry) => (
+            <div key={entry.label} className="rounded-2xl border border-border/60 bg-muted/15 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{entry.label}</p>
+              <Link href={entry.href} target="_blank" className="mt-2 block break-all text-sm font-medium text-primary">
+                {entry.href}
+              </Link>
+            </div>
+          ))}
+        </div>
+      </SubSection>
+
+      <SubSection title="Process Flow">
+        <FlowList items={wixProcessFlow} />
+      </SubSection>
+
+      <SubSection title="Pre-requisites">
+        <FlowList items={wixPrerequisites} />
+        <Image
+          src="/wix1.png"
+          alt="Wix advanced developer platform requirement screenshot"
+          width={800}
+          height={450}
+          className="rounded-2xl border border-border/60"
+        />
+      </SubSection>
+
+      <SubSection title="Pg URLs">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Staging / Test</p>
+            <code className="mt-2 block break-all text-foreground">https://stage-securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1</code>
+          </div>
+          <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Production / Live</p>
+            <code className="mt-2 block break-all text-foreground">https://securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1</code>
+          </div>
+        </div>
+      </SubSection>
+
+      <SubSection title="Create a SabPaisa payment plugin">
+        <div className="space-y-4 text-muted-foreground">
+          <p>
+            The first step in setting up the SabPaisa plugin is to add it to your site. This process creates a new folder in the Service
+            Plugins section of the Velo Sidebar that contains the files for your code.
+          </p>
+          <ol className="list-decimal space-y-4 pl-5">
+            <li>
+              <p>With Velo Dev Mode enabled, click Public & Backend &#123; &#125; on the Velo Sidebar.</p>
+            </li>
+            <li>
+              <div className="space-y-2">
+                <p>Scroll down to Service Plugins.</p>
+                <Image
+                  src="/wix2.png"
+                  alt="Service plugins section screenshot"
+                  width={800}
+                  height={450}
+                  className="rounded-2xl border border-border/60"
+                />
+              </div>
+            </li>
+            <li>
+              <p>Hover over Service Plugins and click (+).</p>
+            </li>
+            <li>
+              <div className="space-y-2">
+                <p>Select Payment.</p>
+                <Image
+                  src="/wix3.png"
+                  alt="Select payment plugin screenshot"
+                  width={800}
+                  height={450}
+                  className="rounded-2xl border border-border/60"
+                />
+              </div>
+            </li>
+            <li>
+              <div className="space-y-2">
+                <p>Enter the plugin name as "SabPaisa" and click Add & Edit Code.</p>
+                <p>5.1 The name cannot contain spaces or special characters.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </SubSection>
+
+      <SubSection title="Implement the plugin">
+        <div className="space-y-4 text-muted-foreground">
+          <p>
+            The procedure in the previous section creates a folder in the Service Plugins section of the Velo Sidebar called
+            payment-provider. Inside this is another folder with the name of SabPaisa, containing SabPaisa-config.js and SabPaisa.js.
+          </p>
+          <Image
+            src="/wix4.png"
+            alt="SabPaisa plugin files in Velo screenshot"
+            width={800}
+            height={450}
+            className="rounded-2xl border border-border/60"
+          />
+          <p>To implement your plugin, you need to:</p>
+          <ol className="list-decimal space-y-2 pl-5">
+            <li>Add SabPaisa code in these files to integrate with SabPaisa.</li>
+            <li>Expose HTTP endpoints on your site that SabPaisa uses to send updates about transactions.</li>
+          </ol>
+          <p>Here are some guidelines for setting up the code.</p>
+
+          <div className="space-y-5">
+            <div className="space-y-3">
+              <p className="font-semibold text-foreground">(SabPaisa-config.js):</p>
+              <p>
+                The code in this file defines a function named <code>getConfig()</code> that returns an object containing the values used to
+                display information about the SabPaisa plugin in three different locations on your site.
+              </p>
+              <p>a) The Connect page where you connect a SabPaisa plugin to your site.</p>
+              <Image
+                src="/wix5.png"
+                alt="Connect SabPaisa plugin screenshot"
+                width={800}
+                height={450}
+                className="rounded-2xl border border-border/60"
+              />
+              <p>b) The Accept Payments page where you see the payment methods you have connected.</p>
+              <Image
+                src="/wix6.png"
+                alt="Accept payments page screenshot"
+                width={800}
+                height={450}
+                className="rounded-2xl border border-border/60"
+              />
+              <p>c) The Checkout page where visitors finalize their shipping and payment details.</p>
+              <Image
+                src="/wix7.png"
+                alt="Checkout page payment option screenshot"
+                width={800}
+                height={450}
+                className="rounded-2xl border border-border/60"
+              />
+              <p>
+                2. Copy the code from{' '}
+                <Link
+                  href="https://bitbucket.org/sabpaisa-wp-29/wix-integration-kit/src/wix_kit/SabPaisa-config.js"
+                  target="_blank"
+                  className="text-primary hover:underline"
+                >
+                  SabPaisa-config.js
+                </Link>{' '}
+                and paste it in your file.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <p className="font-semibold text-foreground">(SabPaisa.js):</p>
+              <p>
+                1. The code in this file defines the <code>connectAccount()</code> and <code>createTransaction()</code> functions. These are
+                called by Wix at different points in the payment processing flow.
+              </p>
+              <p>
+                1.1 <code>connectAccount()</code> is called when you click the Connect button on the Connect page in your dashboard. Use it
+                to create a new account for the SabPaisa plugin and return the account information to Wix.
+              </p>
+              <p>
+                1.2 <code>createTransaction()</code> is called when a site visitor clicks the Place Order button on your site’s Checkout
+                page. Use it to send a request to SabPaisa to create a new transaction.
+              </p>
+              <p>
+                2. NOTE: Review the sample code in{' '}
+                <Link
+                  href="https://bitbucket.org/sabpaisa-wp-29/wix-integration-kit/src/wix_kit/SabPaisa.js"
+                  target="_blank"
+                  className="text-primary hover:underline"
+                >
+                  SabPaisa.js
+                </Link>{' '}
+                for the <code>connectAccount()</code> and <code>createTransaction()</code> implementations.
+              </p>
+              <p>
+                2.1 After the transaction is completed, create the <code>http-functions.js</code> file to receive updates from SabPaisa
+                about success or failure.
+              </p>
+              <p>2.2 Provide the callback URL to SabPaisa as part of the request to create the transaction.</p>
+              <p>
+                2.3 Use the <code>submitEvent()</code> function in your endpoint logic to mark the transaction as completed so the related
+                order appears in the Orders tab.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <p className="font-semibold text-foreground">(http-functions.js):</p>
+              <p>
+                Note: When you create a transaction with SabPaisa, you must provide a callback URL for an HTTP endpoint that SabPaisa uses
+                to send status updates.
+              </p>
+              <ol className="list-decimal space-y-2 pl-5">
+                <li>Click Public & Backend &#123; &#125; on the Velo Sidebar.</li>
+                <li>
+                  <div className="space-y-2">
+                    <p>Scroll down to Backend.</p>
+                    <Image
+                      src="/wix8.png"
+                      alt="Navigate to backend section screenshot"
+                      width={800}
+                      height={450}
+                      className="rounded-2xl border border-border/60"
+                    />
+                  </div>
+                </li>
+                <li>Hover over Backend and click (+).</li>
+                <li>
+                  <div className="space-y-2">
+                    <p>Select Expose site API Option.</p>
+                    <Image
+                      src="/wix9.png"
+                      alt="Expose site API option screenshot"
+                      width={800}
+                      height={450}
+                      className="rounded-2xl border border-border/60"
+                    />
+                  </div>
+                </li>
+                <li>
+                  <div className="space-y-2">
+                    <p>After selecting the Expose site API option a file will be created.</p>
+                    <Image
+                      src="/wix10.png"
+                      alt="New API file screenshot"
+                      width={800}
+                      height={450}
+                      className="rounded-2xl border border-border/60"
+                    />
+                  </div>
+                </li>
+                <li>Copy the code from the provided http-functions.js sample.</li>
+                <li>Paste the code into your http-functions.js file.</li>
+                <li>
+                  This file contains the callback URL logic where SabPaisa sends responses. It redirects to the required response pages and
+                  updates transaction status based on the SabPaisa response.
+                </li>
+              </ol>
+              <p>
+                Note: A webhook function is also provided to update pending transactions directly on the server.
+              </p>
+            </div>
+          </div>
+        </div>
+      </SubSection>
+
+      <SubSection title="How to put the callback success & failure URLs in the create transaction">
+        <div className="space-y-2 text-muted-foreground">
+          <p>Success Url: "Mention your site url/_functions/updateTransaction"</p>
+          <p>Failure Url: "Mention your site url/_functions/updateTransaction"</p>
+          <p>Webhook Url: "Mention your site url/_functions/Webhook"</p>
+        </div>
+      </SubSection>
+
+      <SubSection title="Deploy the plugin">
+        <div className="space-y-4 text-muted-foreground">
+          <p>Once your code files are ready, deploy the SabPaisa plugin and enable it on your site’s dashboard.</p>
+          <ol className="list-decimal space-y-4 pl-5">
+            <li>
+              <div className="space-y-2">
+                <p>Publish your site.</p>
+                <Image
+                  src="/wix11.png"
+                  alt="Publish Wix site screenshot"
+                  width={800}
+                  height={450}
+                  className="rounded-2xl border border-border/60"
+                />
+              </div>
+            </li>
+            <li>Go to the Accept Payments settings on your site’s dashboard.</li>
+            <li>
+              <div className="space-y-2">
+                <p>Find SabPaisa in your service plugins list and click Connect.</p>
+                <Image
+                  src="/wix12.png"
+                  alt="Connect SabPaisa in Accept Payments screenshot"
+                  width={800}
+                  height={450}
+                  className="rounded-2xl border border-border/60"
+                />
+              </div>
+            </li>
+            <li>
+              <div className="space-y-2">
+                <p>Enter the account credential information shared by your SabPaisa account manager and click Connect.</p>
+                <Image
+                  src="/wix13.png"
+                  alt="Enter SabPaisa credentials screenshot"
+                  width={800}
+                  height={450}
+                  className="rounded-2xl border border-border/60"
+                />
+              </div>
+            </li>
+            <li>
+              <div className="space-y-2">
+                <p>Once deployed, the SabPaisa payment option appears on your site’s Checkout page.</p>
+                <Image
+                  src="/wix14.png"
+                  alt="SabPaisa payment option on checkout screenshot"
+                  width={800}
+                  height={450}
+                  className="rounded-2xl border border-border/60"
+                />
+                <p>After clicking the Place Order & Pay button, the SabPaisa checkout page opens.</p>
+                <Image
+                  src="/wix15.png"
+                  alt="SabPaisa hosted checkout screenshot"
+                  width={800}
+                  height={450}
+                  className="rounded-2xl border border-border/60"
+                />
+              </div>
+            </li>
+          </ol>
+        </div>
+      </SubSection>
+    </div>
+  )
+}
+
+function OpenCartCustomSections({ kit }: { kit: IntegrationKitDoc }) {
+  return (
+    <div className="space-y-6 text-sm">
+      <SubSection title="Introduction">
+        <div className="space-y-3 text-foreground">
+          {openCartIntroductionParagraphs.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </div>
+      </SubSection>
+
+      <SubSection title="Integration walkthrough">
+        <VideoEmbed url="https://youtu.be/ACRS_K67RvQ?si=0TKXeOin8xlh8QZf" title="OpenCart integration walkthrough" />
+      </SubSection>
+
+      {openCartSummaryCards.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {openCartSummaryCards.map((card) => (
+            <div key={card.title} className="rounded-2xl border border-border/60 bg-background/90 p-5 shadow-sm">
+              <div className="flex items-center gap-3 text-foreground">
+                <card.icon className="h-5 w-5 text-primary" />
+                <h4 className="text-sm font-semibold">{card.title}</h4>
+              </div>
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                {card.items.map((item) => (
+                  <li key={item.label}>
+                    {item.href ? (
+                      <Link href={item.href} target="_blank" className="text-primary hover:underline">
+                        {item.label}
+                      </Link>
+                    ) : (
+                      item.label
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <SubSection title="Endpoint URLs & Reference Code">
+        <div className="grid gap-4 sm:grid-cols-3">
+          {openCartReferenceEntries.map((entry) => (
+            <div key={entry.label} className="rounded-2xl border border-border/60 bg-muted/15 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{entry.label}</p>
+              <Link href={entry.href} target="_blank" className="mt-2 block break-all text-sm font-medium text-primary">
+                {entry.href}
+              </Link>
+            </div>
+          ))}
+        </div>
+      </SubSection>
+
+      <SubSection title="Compatibilities & dependencies">
+        <FlowList items={openCartCompatibilities} />
+      </SubSection>
+
+      <SubSection title="Download plugin">
+        <div className="space-y-3">
+          <p>Download Plugin : {openCartDownloadLink}</p>
+          <Link
+            href={openCartDownloadLink}
+            target="_blank"
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white hover:bg-primary/90"
+          >
+            Download Plugin
+          </Link>
+        </div>
+      </SubSection>
+
+      <SubSection title="Configure OpenCart">
+        <ol className="list-decimal space-y-3 pl-5 text-muted-foreground">
+          {openCartConfigurationSteps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ol>
+      </SubSection>
+    </div>
+  )
+}
+
+function OdooCustomSections({ kit }: { kit: IntegrationKitDoc }) {
+  return (
+    <div className="space-y-6 text-sm">
+      <SubSection title="Introduction">
+        <p className="text-foreground">{odooIntroduction}</p>
+      </SubSection>
+
+      {odooSummaryCards.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {odooSummaryCards.map((card) => (
+            <div key={card.title} className="rounded-2xl border border-border/60 bg-background/90 p-5 shadow-sm">
+              <div className="flex items-center gap-3 text-foreground">
+                <card.icon className="h-5 w-5 text-primary" />
+                <h4 className="text-sm font-semibold">{card.title}</h4>
+              </div>
+              <ul className="mt-3 space-y-2 text-muted-foreground">
+                {card.items.map((item) => (
+                  <li key={item.label} className="text-sm">
+                    {item.href ? (
+                      <Link href={item.href} target="_blank" className="text-primary hover:underline">
+                        {item.label}
+                      </Link>
+                    ) : (
+                      item.label
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <SubSection title="Process Flow">
+        <FlowList items={odooProcessFlow} />
+        <p className="text-sm text-muted-foreground">
+          This structured process ensures a seamless integration of SabPaisa's Payment Gateway within Odoo, providing a secure and efficient
+          payment solution.
+        </p>
+      </SubSection>
+
+      <SubSection title="Prerequisites">
+        <FlowList items={odooPrerequisites} />
+      </SubSection>
+
+      <SubSection title="Pg URLs">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Staging / Test</p>
+            <code className="mt-2 block break-all text-foreground">{kit.endpoints.sandbox}</code>
+          </div>
+          <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Production / Live</p>
+            <code className="mt-2 block break-all text-foreground">{kit.endpoints.production}</code>
+          </div>
+        </div>
+      </SubSection>
+
+      {odooSteps.map((step) => (
+        <SubSection key={step.title} title={step.title}>
+          <div className="space-y-3 text-muted-foreground">
+            {step.content.map((entry, idx) =>
+              entry.type === 'text' ? (
+                <p key={`${step.title}-text-${idx}`}>{entry.content}</p>
+              ) : (
+                <Image
+                  key={`${step.title}-image-${idx}`}
+                  src={entry.src}
+                  alt={entry.alt}
+                  width={960}
+                  height={540}
+                  className="rounded-2xl border border-border/60"
+                />
+              )
+            )}
+          </div>
+        </SubSection>
+      ))}
+    </div>
+  )
+}
+
+function AndroidCustomSections({ kit }: { kit: IntegrationKitDoc }) {
+  return (
+    <div className="space-y-6 text-sm">
+      <SubSection title="Introduction">
+        <p className="text-foreground">{androidIntroduction}</p>
+      </SubSection>
+
+      <SubSection title="Integration walkthrough">
+        <VideoEmbed url="https://youtu.be/XsNkVFtq7Ns?si=ms5CXwGiW53sRTGR" title="Android integration walkthrough" />
+      </SubSection>
+
+      <SubSection title="Reference code">
+        <div className="space-y-3">
+          <div className="rounded-2xl border border-border/60 p-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <span className="font-medium text-foreground">Java Reference</span>
+              <Link href="https://bitbucket.org/sabpaisa-wp-29/android-version-2.0/src/master/" target="_blank" className="text-primary hover:underline">
+                View Java sample
+              </Link>
+            </div>
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <span className="font-medium text-foreground">Kotlin Reference</span>
+              <Link href="https://bitbucket.org/sabpaisa-wp-29/android_kotlinv2.0/src/master/" target="_blank" className="text-primary hover:underline">
+                View Kotlin sample
+              </Link>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-border/60 bg-muted/20 p-4 text-sm">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Staging URL</p>
+              <code className="mt-2 block break-all text-foreground">{kit.endpoints.sandbox}</code>
+            </div>
+            <div className="rounded-2xl border border-border/60 bg-muted/20 p-4 text-sm">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Live URL</p>
+              <code className="mt-2 block break-all text-foreground">{kit.endpoints.production}</code>
+            </div>
+          </div>
+        </div>
+      </SubSection>
+
+      <SubSection title="Pre-requisite steps for integration">
+        <FlowList items={androidPrerequisites.map((title) => ({ title }))} />
+      </SubSection>
+
+      <SubSection title="Process flow">
+        <FlowList items={androidProcessFlow.map((title) => ({ title }))} />
+      </SubSection>
+
+      <SubSection title="Integration guidelines">
+        <ol className="space-y-4">
+          {androidIntegrationSteps.map((step) => (
+            <li key={step.title} className="rounded-2xl border border-border/60 bg-background/90 p-4 shadow-sm">
+              <div className="space-y-2">
+                <p className="font-semibold text-foreground">{step.title}</p>
+                <p className="text-muted-foreground">{step.description}</p>
+                {step.details && (
+                  <ul className="list-disc space-y-1 pl-4 text-muted-foreground">
+                    {step.details.map((detail) => (
+                      <li key={detail}>{detail}</li>
+                    ))}
+                  </ul>
+                )}
+                {step.java && (
+                  <>
+                    <p className="font-semibold text-foreground">Sample request (Java)</p>
+                    <CodeBlock content={step.java} language="java" />
+                  </>
+                )}
+                {step.kotlin && (
+                  <>
+                    <p className="font-semibold text-foreground">Sample request (Kotlin)</p>
+                    <CodeBlock content={step.kotlin} language="kotlin" />
+                  </>
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </SubSection>
+
+      <SubSection title="Payment Request Parameters Table">
+        <ParameterTable data={kit.requestParameters} caption="SabPaisa request parameters" />
+      </SubSection>
+
+      <SubSection title="Payment Response Handling">
+        <div className="space-y-4 text-muted-foreground">
+          <div>
+            <p className="font-semibold text-foreground">1. Merchant provides custom callback URL</p>
+            <p>SabPaisa sends an encrypted response to the provided callback URL via GET. Decrypt and process the response on your server.</p>
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">2. No callback URL provided</p>
+            <p>SabPaisa sends the decrypted response back to the app via <code>onActivityResult</code>. Handle success/failure inside the activity.</p>
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">Sample response handling (Java)</p>
+            <CodeBlock content={androidResponseHandlingJava} language="java" />
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">Sample response handling (Kotlin)</p>
+            <CodeBlock content={androidResponseHandlingKotlin} language="kotlin" />
+          </div>
+        </div>
+      </SubSection>
+
+      <SubSection title="Payment Response Parameters Table">
+        <ParameterTable data={kit.responseParameters} caption="SabPaisa response parameters" />
+      </SubSection>
+
+      <SubSection title="Payment status code">
+        <div className="overflow-x-auto rounded-2xl border border-border/60">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3 font-medium text-foreground">Status Code</th>
+                <th className="px-4 py-3 font-medium text-foreground">Description</th>
+                <th className="px-4 py-3 font-medium text-foreground">Recommended Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/60">
+              {androidPaymentStatusCodes.map((item) => (
+                <tr key={item.code}>
+                  <td className="px-4 py-3 font-medium text-foreground">{item.code}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{item.description}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{item.action}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SubSection>
+    </div>
+  )
+}
 const KitSections = ({ kit }: { kit: IntegrationKitDoc }) => {
   const [isOnline, setIsOnline] = useState(true)
   const suppressMedia =
@@ -876,6 +1886,30 @@ const KitSections = ({ kit }: { kit: IntegrationKitDoc }) => {
   const integrationFlow = integrationFlowByKit[kit.id]
   const isEnhancedKit = enhancedKits.has(kit.id)
   const sampleTitles = sampleSectionTitleMap[kit.id] ?? sampleSectionTitleMap.default
+
+  if (kit.id === 'woocommerce-plugin') {
+    return <WooCommerceCustomSections kit={kit} />
+  }
+
+  if (kit.id === 'opencart') {
+    return <OpenCartCustomSections kit={kit} />
+  }
+
+  if (kit.id === 'wix') {
+    return <WixCustomSections />
+  }
+
+  if (kit.id === 'odoo') {
+    return <OdooCustomSections kit={kit} />
+  }
+
+  if (kit.id === 'ios') {
+    return <IOSCustomSections kit={kit} />
+  }
+
+  if (kit.id === 'android') {
+    return <AndroidCustomSections kit={kit} />
+  }
 
   if (kit.id === 'react-native') {
     return <ReactNativeCustomSections kit={kit} />
@@ -1273,6 +2307,48 @@ const dotnetSummaryCards: SummaryCard[] = [
   }
 ]
 
+const wooSummaryCards: SummaryCard[] = [
+  {
+    title: 'System requirements',
+    icon: Server,
+    items: [
+      { label: 'WordPress 3.9.2 or higher' },
+      { label: 'WooCommerce 2.4 or higher' },
+      { label: 'Admin access to install plugins' }
+    ]
+  },
+  {
+    title: 'SabPaisa resources',
+    icon: ShieldCheck,
+    items: [
+      { label: 'Plugin package downloaded from SabPaisa' },
+      { label: 'Merchant credentials (client code, username, password)' },
+      { label: 'Authentication key and IV' }
+    ]
+  }
+]
+
+const openCartSummaryCards: SummaryCard[] = [
+  {
+    title: 'Platform readiness',
+    icon: Server,
+    items: [
+      { label: 'OpenCart 1.5 / 2.x / 3.x storefront with admin access' },
+      { label: 'PHP + MySQL hosting with FTP or file manager access' },
+      { label: 'Ability to upload and enable custom extensions' }
+    ]
+  },
+  {
+    title: 'SabPaisa credentials',
+    icon: ShieldCheck,
+    items: [
+      { label: 'Client code, authentication IV, auth key' },
+      { label: 'SabPaisa username and password' },
+      { label: 'Official SabPaisa OpenCart plugin package' }
+    ]
+  }
+]
+
 const summaryCardsByKit: Record<string, SummaryCard[] | undefined> = {
   java: javaSummaryCards,
   php: phpSummaryCards,
@@ -1282,6 +2358,10 @@ const summaryCardsByKit: Record<string, SummaryCard[] | undefined> = {
   angularjs: angularSummaryCards,
   python: pythonSummaryCards,
   dotnet: dotnetSummaryCards,
+  'woocommerce-plugin': wooSummaryCards,
+  opencart: openCartSummaryCards,
+  odoo: odooSummaryCards,
+  ios: iosSummaryCards,
   flutter: flutterSummaryCards,
   'react-native': reactNativeSummaryCards
 }
@@ -1300,9 +2380,12 @@ const integrationFlowByKit: Record<string, FlowListItem[] | undefined> = {
 }
 
 
-const enhancedKits = new Set(['java', 'php', 'nodejs', 'laravel', 'reactjs', 'angularjs', 'python', 'dotnet', 'flutter', 'react-native'])
-const customVideoKits = new Set(['flutter', 'react-native'])
-const hideFormatSections = new Set(['flutter', 'react-native'])
+const enhancedKits = new Set(['java', 'php', 'nodejs', 'laravel', 'reactjs', 'angularjs', 'python', 'dotnet', 'flutter', 'react-native', 'woocommerce-plugin', 'odoo'])
+const customVideoKits = new Set(['flutter', 'react-native', 'android', 'woocommerce-plugin'])
+const hideFormatSections = new Set(['flutter', 'react-native', 'android', 'ios', 'woocommerce-plugin', 'odoo', 'wix', 'opencart'])
+
+const androidIntroduction =
+  'This document provides a comprehensive guide for integrating the SabPaisa Payment Gateway SDK into Android apps, covering prerequisites, SDK setup, request/response handling, and payment status management.'
 
 const flutterIntroduction =
   'This guide provides step-by-step instructions for integrating the SabPaisa Flutter SDK into your mobile application, enabling you to accept payments via SabPaisa.'
@@ -1359,7 +2442,372 @@ pod install`
   }
 ]
 
+const iosIntroduction =
+  'This document explains how to embed the SabPaisa Payment Gateway inside native iOS apps using the SabPaisa SDK, covering prerequisites, setup, and response handling.'
+
+const iosPrerequisites = [
+  'Mac OS with Xcode 13 or higher installed',
+  'Minimum supported iOS version: 11',
+  'SabPaisa merchant credentials and SDK access'
+]
+
+const iosSteps = [
+  {
+    title: 'Step 1 — Copy the onClick handler',
+    description:
+      'Refer to ViewController.swift in the reference kit, copy the onClick function, import SabPaisa_IOS_Sdk, and invoke it when you want to open the SabPaisa SDK.'
+  },
+  {
+    title: 'Step 2 — Import the SDK via Swift Package Manager',
+    description:
+      'Add the package https://bitbucket.org/sabpaisa-wp-29/ios_sp_framework-v.1.0/src/main/ and include Alamofire (https://github.com/Alamofire/Alamofire.git) as a dependency.'
+  },
+  {
+    title: 'Step 3 — Sync resources on app launch',
+    description: 'Call SabPaisaImageSync().sync() inside viewDidLoad so images and assets are prepared.',
+    code: `override func viewDidLoad() {
+    super.viewDidLoad()
+    SabPaisaImageSync().sync()
+}`
+  },
+  {
+    title: 'Step 4 — Map response fields',
+    description:
+      'Use the TransactionResponse object returned by the SDK; it exposes payerName, statusCode, sabpaisaTxnId, udf fields, etc. Handle them to update your backend/UI.'
+  }
+]
+
+const iosResponseVariables = `response.payerName
+response.payerEmail
+response.payerMobile
+response.clientTxnId
+response.payerAddress
+response.amount
+response.clientCode
+response.paidAmount
+response.paymentMode
+response.bankName
+response.amountType
+response.status
+response.statusCode
+response.challanNumber
+response.sibpaisatxnId
+response.sibpaisaMessage
+response.bankMessage
+response.bankErrorCode
+response.bankTxnId
+response.transferDate
+response.udf1 ... response.udf20`
+
+const iosOtherPoints = [
+  {
+    title: 'TransactionResponse class',
+    description: 'Use TransactionResponse for all information you need at the end of a transaction.'
+  },
+  {
+    title: 'Disable SabPaisa success/failure screens',
+    description: 'Set sabpaisaPaymentScreenEnabled to false when initializing SdkInitModel.',
+    code: `vc.sdkInitModel = SdkInitModel(
+    firstName: firstName,
+    lastName: lastname,
+    secKey: secKey,
+    secInivialVector: secInivialVector,
+    transUserName: transUserName,
+    transUserPassword: transUserPassword,
+    clientCode: clientCodeName,
+    amount: Float(amount),
+    emailAddress: emailId,
+    mobileNumber: mobileNumber,
+    isProd: true,
+    baseUrl: baseUrl,
+    initiUrl: initUrl,
+    transactionEnquiryUrl: transactionEnqUrl,
+    salutation: "Hi, ",
+    sabpaisaPaymentScreenEnabled: false
+)`
+  },
+  {
+    title: 'Add callbackUrl parameter',
+    description: 'Provide a callbackUrl when creating SdkInitModel if you want SabPaisa to call your endpoint.',
+    code: `vc.sdkInitModel = SdkInitModel(
+    firstName: firstName,
+    lastName: lastname,
+    secKey: secKey,
+    secInivialVector: secInivialVector,
+    transUserName: transUserName,
+    transUserPassword: transUserPassword,
+    clientCode: clientCodeName,
+    amount: Float(amount),
+    emailAddress: emailId,
+    mobileNumber: mobileNumber,
+    isProd: true,
+    baseUrl: baseUrl,
+    initiUrl: initUrl,
+    transactionEnquiryUrl: transactionEnqUrl,
+    salutation: "Hi, ",
+    sabpaisaPaymentScreenEnabled: true
+),
+callbackUrl: "http://yourserveraddress.com/getData")`
+  }
+]
+
+const odooIntroduction =
+  "Integrating the SabPaisa Payment Gateway with your Odoo system enables secure and efficient online payment processing, offering your customers a seamless transaction experience. SabPaisa supports various payment methods, including credit cards, debit cards, net banking, UPI, and wallets, catering to a wide customer base."
+
+const odooPrerequisites: FlowListItem[] = [
+  {
+    title: 'Odoo Installation',
+    description: 'A running instance of Odoo (version 18.0 or compatible).'
+  },
+  {
+    title: 'SabPaisa Merchant Account',
+    description: 'An active merchant account with SabPaisa.'
+  },
+  {
+    title: 'API Credentials',
+    description: 'Client code, username, password, Auth Key, and Auth IV obtained from SabPaisa.'
+  }
+]
+
+const odooProcessFlow: FlowListItem[] = [
+  {
+    title: 'Step 1: Download the SabPaisa Payment Gateway Module',
+    description: 'Begin by downloading the official SabPaisa Payment Gateway module required for integration with Odoo.'
+  },
+  {
+    title: 'Step 2: Install the Module in Odoo',
+    description: 'Upload and install the downloaded module so that payment gateway features are available inside Odoo.'
+  },
+  {
+    title: 'Step 3: Configure the Payment Gateway',
+    description: 'Open the payment provider configuration and enter the necessary credentials and parameters.'
+  },
+  {
+    title: 'Step 4: Test the Payment Gateway',
+    description: 'Perform test transactions to ensure the payment gateway is functioning correctly.'
+  },
+  {
+    title: 'Step 5: Activate Live Mode',
+    description: 'Once testing succeeds, switch to live mode to process real customer payments.'
+  }
+]
+
+type OdooStepContent =
+  | { type: 'text'; content: string }
+  | { type: 'image'; src: string; alt: string }
+
+const odooSteps: { title: string; content: OdooStepContent[] }[] = [
+  {
+    title: 'Step 1: Download the SabPaisa Payment Gateway Module',
+    content: [
+      { type: 'text', content: '1. Access the Module: https://apps.odoo.com/apps/modules/18.0/payment_sabpaisa' },
+      { type: 'image', src: '/odoo1.png', alt: 'Odoo Apps download module screenshot' },
+      { type: 'text', content: '2. Click “Download” and save the module file (ZIP format) on your system.' }
+    ]
+  },
+  {
+    title: 'Step 2: Install the SabPaisa Payment Gateway Module in Odoo',
+    content: [
+      { type: 'text', content: 'Manual Installation via File Upload' },
+      { type: 'text', content: '1. Upload the Module to Your Odoo Add-ons Directory:' },
+      { type: 'text', content: 'a. Extract the downloaded ZIP file.' },
+      { type: 'text', content: 'b. Move the extracted folder to the addons directory: \\odoo\\server\\odoo\\addons' },
+      { type: 'text', content: 'c. Ensure the folder name matches the module’s technical name.' },
+      { type: 'text', content: '2. Restart the Odoo service' },
+      { type: 'text', content: 'a. Restart the Odoo service to recognize the new module.' },
+      { type: 'text', content: '3. Update the Apps List:' },
+      { type: 'text', content: 'a. Log in to Odoo → Go to Apps → Click “Update Apps List”.' },
+      { type: 'image', src: '/odoo2.png', alt: 'Update apps list screenshot' },
+      { type: 'text', content: 'b. Search for the SabPaisa module and click “ACTIVATE.”' },
+      { type: 'image', src: '/odoo3.png', alt: 'Activate module screenshot' }
+    ]
+  },
+  {
+    title: 'Step 3: Configure the Payment Gateway',
+    content: [
+      { type: 'text', content: '1. Navigate to the Payment Provider Section:' },
+      { type: 'text', content: 'a. Go to Invoicing / Accounting → Configuration → Payment Provider.' },
+      { type: 'text', content: '2. Select the Installed Payment Gateway:' },
+      { type: 'text', content: 'a. Find the SabPaisa payment gateway in the list.' },
+      { type: 'image', src: '/odoo4.png', alt: 'Payment providers list screenshot' },
+      { type: 'text', content: 'b. Click on SabPaisa to open the configuration settings.' },
+      { type: 'image', src: '/odoo5.png', alt: 'SabPaisa configuration form screenshot' },
+      { type: 'text', content: '3. Enter API Credentials:' },
+      { type: 'text', content: 'a. Obtain your API credentials from SabPaisa.' },
+      { type: 'text', content: 'b. Fill in the Client Code, Auth IV, Auth Key, Username, Password, PG URL details.' },
+      { type: 'text', content: '4. Configure Payment Settings:' },
+      { type: 'text', content: 'a. Enable the payment gateway by setting the State to “Enabled”.' },
+      { type: 'text', content: '5. Save the Configuration and click “Test Connection” to verify the integration.' }
+    ]
+  },
+  {
+    title: 'Step 4: Test the Payment Gateway',
+    content: [
+      { type: 'text', content: 'Before going live, it’s essential to test the integration:' },
+      { type: 'text', content: '1. Enable Test Mode:' },
+      { type: 'text', content: 'a. In the Payment Acquirers section, switch the Mode to “Test Mode”.' },
+      { type: 'text', content: '2. Perform a Test Transaction:' },
+      { type: 'text', content: 'a. Create a test invoice and proceed with payment.' },
+      { type: 'image', src: '/odoo6.png', alt: 'Test transaction screenshot' },
+      { type: 'text', content: 'b. Use the test card details provided by SabPaisa.' },
+      { type: 'text', content: 'c. Verify that the payment is recorded in Odoo.' }
+    ]
+  },
+  {
+    title: 'Step 5: Activate Live Mode',
+    content: [
+      { type: 'text', content: 'Once testing is successful:' },
+      { type: 'text', content: '1. Go back to Invoicing → Configuration → Payment Provider.' },
+      { type: 'text', content: '2. Switch “Test Mode” to “Live Mode”.' },
+      { type: 'text', content: '3. Ensure the PG URL and credentials are set to the production environment.' }
+    ]
+  }
+]
+
+const wixIntroductionParagraphs = [
+  'Integrating a payment gateway into your Wix website is crucial for enabling seamless and secure transactions. SabPaisa is a reliable and versatile payment gateway that supports multiple payment methods, including credit/debit cards, net banking, UPI, and wallets, making it an excellent choice for businesses and e-commerce platforms.',
+  'In this guide, we will walk you through the step-by-step process of integrating the SabPaisa Payment Gateway with your Wix website.'
+]
+
+const wixReferenceEntries = [
+  {
+    label: 'SabPaisa-Config.js',
+    href: 'https://bitbucket.org/sabpaisa-wp-29/wix-integration-kit/src/wix_kit/SabPaisa-config.js'
+  },
+  {
+    label: 'http-function.js',
+    href: 'https://bitbucket.org/sabpaisa-wp-29/wix-integration-kit/src/wix_kit/http-functions.js'
+  },
+  {
+    label: 'SabPaisa.js',
+    href: 'https://bitbucket.org/sabpaisa-wp-29/wix-integration-kit/src/wix_kit/SabPaisa.js'
+  },
+  {
+    label: 'Staging URL',
+    href: 'https://stage-securepay.sabpaisa.in/SabPaisa/sabPaisaInit'
+  },
+  {
+    label: 'Production URL',
+    href: 'https://securepay.sabpaisa.in/SabPaisa/sabPaisaInit'
+  }
+]
+
+const wixPrerequisites: FlowListItem[] = [
+  {
+    title: 'An active SabPaisa merchant account with valid credentials (Client code, user name, password, authKey, authIv).'
+  },
+  {
+    title: 'SabPaisa sandbox/test credentials for checking transactions before going live.'
+  },
+  {
+    title:
+      'Purchase the Wix Business Elite package to access the Advanced Developer Platform required for integration and custom development.'
+  }
+]
+
+const wixProcessFlow: FlowListItem[] = [
+  {
+    title: 'Step 1: Download the SabPaisa Payment Gateway Module',
+    description: 'Begin by downloading the official SabPaisa Payment Gateway module required for integration with Wix.'
+  },
+  {
+    title: 'Step 2: Install the Module in Wix',
+    description: 'Add the SabPaisa plugin via Service Plugins so payment gateway functionality becomes available.'
+  },
+  {
+    title: 'Step 3: Configure the Payment Gateway',
+    description: 'Enter credentials, expose endpoints, and wire up SabPaisa-config.js, SabPaisa.js, and http-functions.js.'
+  },
+  {
+    title: 'Step 4: Test the Payment Gateway',
+    description: 'Create test transactions to ensure success and failure flows work as expected.'
+  },
+  {
+    title: 'Step 5: Activate Live Mode',
+    description: 'Publish the plugin, connect it in Accept Payments, and process live orders.'
+  }
+]
+
+const openCartIntroductionParagraphs = [
+  'This document is to provide an overview of the Payment Gateway integration provided by SabPaisa . The document contains the required information for E- commerce Kit to integrate the PG platform.',
+  'OpenCart is an online store management system. It is PHP-based, using a MySQL database and HTML components. Support is provided for different languages and currencies. SabPaisa has a payment gateway plugin that allows businesses to accept online payments securely and efficiently. By integrating your Opencart website with SabPaisa, you can start accepting payments from customers in India and around the world.',
+  'The process of integrating SabPaisa Payment Gateway plugin with your Opencart website is straightforward.'
+]
+
+const openCartReferenceEntries = [
+  {
+    label: 'Reference Code',
+    href: 'https://bitbucket.org/sabpaisa-wp-29/opencart-plugin/src/master/'
+  },
+  {
+    label: 'Staging URL',
+    href: 'https://stage-securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1'
+  },
+  {
+    label: 'Live URL',
+    href: 'https://securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1'
+  }
+]
+
+const openCartCompatibilities: FlowListItem[] = [
+  { title: 'OpenCart 3' },
+  { title: 'OpenCart 2' },
+  { title: 'OpenCart 1.5' },
+  { title: 'Integrate your Opencart website with the SabPaisa Payment Gateway using our opencart plugin.' }
+]
+
+const openCartDownloadLink =
+  'https://srslivetech-my.sharepoint.com/:u:/g/personal/vimal_vishwakarma_sabpaisa_in/EbsDa3XXpqNIqyl8ogmnPMIBiS6-jMRyRyP7Bjy0Dlgfmw?e=cqPgiV'
+
+const openCartConfigurationSteps = [
+  'Log in to OpenCart',
+  'Navigate to the Admin Panel → Extensions → Payments to install the SabPaisa Payment Gateway extension.',
+  'Click Edit. Complete the following steps:',
+  'Add in your [CLIENT_CODE], [AUTHENTICATION_IV], [AUTH_KEY], [USER_NAME], and [PASSWORD] generated from the SabPaisa.',
+  'Change extension status to Enabled.',
+  'Click Save to save the extension settings.'
+]
+
 const reactNativeImportSnippet = `import { SabPaisaCheckout } from 'sabpaisa-react-lib-lite';`
+
+const wooIntroduction =
+  'This document explains how to install and configure the SabPaisa Payment Gateway plugin for WooCommerce so merchants can accept secure online payments.'
+
+const wooProcessSteps = [
+  'Download and install the SabPaisa plugin',
+  'Configure WooCommerce payment settings',
+  'Activate the SabPaisa payment method',
+  'Enter API credentials (client code, username, password, spDomain, auth key/IV)'
+]
+
+const wooInstallationSteps = [
+  {
+    title: '1. Download the plugin',
+    description: 'Use the Download Plugin button to get the SabPaisa WooCommerce package.'
+  },
+  {
+    title: '2. Install the plugin',
+    description:
+      'WordPress Admin → Plugins → Add New → Upload Plugin. Choose the downloaded file, click Install Now, then Activate.'
+  },
+  {
+    title: '3. Configure WooCommerce settings',
+    description:
+      'In WooCommerce → Settings → Payments, click SabPaisa to open its settings page and edit options.'
+  },
+  {
+    title: '4. Enable the payment method',
+    description: 'Toggle “Enable SabPaisa Payment Gateway” so it appears on checkout.'
+  },
+  {
+    title: '5. Enter API credentials',
+    description: 'Provide client code, username, password, spDomain, authentication key, and authentication IV from the SabPaisa portal.'
+  },
+  {
+    title: '6. Test and go live',
+    description: 'Use the staging URL for test orders. Once verified, switch to the live URL for production.'
+  }
+]
 
 const reactNativeOptionsSnippet = `const options = {
   first_name: 'Vimal',

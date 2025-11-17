@@ -5,8 +5,8 @@ import { IntegrationDocExplorer } from '@/components/docs/integration-doc-explor
 import { apiReferenceKits } from '@/components/docs/api-reference-kits'
 import { Button } from '@/components/ui/button'
 
-const sandboxEndpoint = 'https://sandbox.api.sabpaisa.in/v1/payments'
-const productionEndpoint = 'https://api.sabpaisa.in/v1/payments'
+const sandboxEndpoint = 'https://stage-securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1'
+const productionEndpoint = 'https://securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1'
 const defaultIntegrationVideoLink = 'https://www.youtube.com/watch?v=TO_BE_ADDED'
 const encryptedRequest = 'U2FtcGxlRW5jcnlwdGVkUGF5bG9hZEVuY29kZWQ='
 const encryptedResponse = 'QmFzZTY0RW5jcnlwdGVkUmVzcG9uc2VTYW1wbGU='
@@ -1494,165 +1494,98 @@ const hybridIntegrationKits: IntegrationKitDoc[] = [
 
 const nativeIntegrationKits: IntegrationKitDoc[] = [
   buildKit('ios', 'iOS', {
-    purpose: 'Integrate SabPaisa with native iOS apps using Swift concurrency, URLSession, and universal links.',
-    useCases: [
-      'iOS banking apps embedding native checkout flows',
-      'Enterprise field apps capturing mandates on-site',
-      'Retail in-app payments requiring Face ID/Touch ID authentication'
-    ],
+    purpose:
+      'Comprehensive SabPaisa iOS SDK integration guide—prerequisites, SDK import, button wiring, required helper calls, and response customization.',
+    useCases: [],
     prerequisites: [
-      'iOS 15+ deployment target',
-      'Keychain access group for secure credential storage',
-      'Universal links configured for SabPaisa redirect handling'
+      'Mac running macOS with Xcode 13+ installed',
+      'Minimum supported deployment target of iOS 11',
+      'Access to SabPaisa Swift package URL/SDK plus merchant credentials'
     ],
     setup: [
-      'Add SabPaisaSwiftSDK via Swift Package Manager',
-      'Create PaymentService leveraging URLSession with certificate pinning',
-      'Implement SceneDelegate handlers for SabPaisa deep links',
-      'Test sandbox flows on physical devices for OTP entry'
+      'Add the onClick handler from ViewController.swift, import SabPaisa_IOS_Sdk, and invoke it from your payment button',
+      'Install the SabPaisa SDK via Swift Package Manager (https://bitbucket.org/sabpaisa-wp-29/ios_sp_framework-v.1.0/src/main/) and add Alamofire dependency',
+      'Call SabPaisaImageSync().sync() inside viewDidLoad for asset syncing',
+      'Consume TransactionResponse fields to update UI/backend and optionally adjust SdkInitModel flags/callbackUrl'
     ],
-    sampleCodeLink: 'https://github.com/sabpaisa/integration-ios-starter',
+    sampleCodeLink: 'https://bitbucket.org/sabpaisa-wp-29/ios_sp_kit_2/src/main/',
     metadataTag: 'IOS_NATIVE',
-    requestMetadata: { framework: 'Swift', platform: 'iOS' },
-    responseMetadata: { framework: 'Swift', platform: 'iOS' },
     requestFormat: createHybridRequestFormat('iOS native'),
     responseFormat: defaultResponseFormat,
-    requestExtras: {
-      channel: 'MOBILE',
-      deviceContext: {
-        deviceId: 'ios-device-uuid',
-        platform: 'iOS',
-        appVersion: '5.3.0'
-      }
-    }
+    requestParameters: phpRequestParameters,
+    responseParameters: phpResponseParameters
   }),
   buildKit('android', 'Android', {
-    purpose: 'Connect SabPaisa to Android apps using Kotlin coroutines, OkHttp, and Jetpack libraries.',
-    useCases: [
-      'UPI-ready Android commerce apps',
-      'Agent applications collecting payments in the field',
-      'Mobile apps requiring offline caching and later sync'
-    ],
+    purpose:
+      'Comprehensive SabPaisa Android SDK integration guide covering prerequisites, SDK import, UI wiring, payment initiation, and response handling.',
+    useCases: [],
     prerequisites: [
-      'Android Studio Giraffe or newer',
-      'Min SDK 24 with Kotlin 1.9',
-      'EncryptedSharedPreferences or Android Keystore for secrets'
+      'Android Studio 4.0+ with API level 21 or higher',
+      'sabaPaisapaymentgateway.aar file provided by SabPaisa',
+      'UAT credentials available for sandbox testing'
     ],
     setup: [
-      'Include SabPaisa Android SDK via Gradle (MavenCentral)',
-      'Create Retrofit service pointing to backend proxy for payment creation',
-      'Handle CustomTabsIntent for SabPaisa hosted checkout',
-      'Instrument sandbox scenarios across varied network conditions'
+      'Import the .aar dependency (Module Settings → Add → AAR) and sync Gradle',
+      'Add UI trigger (Pay Now button) that calls the payment launcher',
+      'Configure SabPaisaPaymentGateway with payer details and credentials (Java/Kotlin samples)',
+      'Launch PaymentGatewayActivity via startActivityForResult and handle results in onActivityResult'
     ],
-    sampleCodeLink: 'https://github.com/sabpaisa/integration-android-starter',
+    sampleCodeLink: 'https://bitbucket.org/sabpaisa-wp-29/android-version-2.0/src/master/',
     metadataTag: 'ANDROID_NATIVE',
-    requestMetadata: { framework: 'Kotlin', platform: 'Android' },
-    responseMetadata: { framework: 'Kotlin', platform: 'Android' },
     requestFormat: createHybridRequestFormat('Android native'),
     responseFormat: defaultResponseFormat,
-    requestExtras: {
-      channel: 'MOBILE',
-      deviceContext: {
-        deviceId: 'android-device-uuid',
-        platform: 'Android',
-        appVersion: '4.2.7'
-      }
-    }
+    requestParameters: phpRequestParameters,
+    responseParameters: phpResponseParameters
   })
 ]
 
 const ecommerceIntegrationKits: IntegrationKitDoc[] = [
   buildKit('woocommerce-plugin', 'WooCommerce Plugin', {
-    purpose: 'Install the SabPaisa WooCommerce plugin to accept payments without writing custom checkout code.',
-    useCases: [
-      'D2C brands requiring quick go-live on WooCommerce',
-      'Merchants adding UPI and mandate support to existing stores',
-      'Teams delegating payment maintenance to SabPaisa managed plugin'
-    ],
+    purpose:
+      'Comprehensive WooCommerce integration guide for the SabPaisa Payment Gateway plugin, covering prerequisites, installation, configuration, and testing.',
+    useCases: [],
     prerequisites: [
-      'WordPress 6.x with WooCommerce 8.x',
-      'Server support for TLS 1.2, cURL, and JSON extensions',
-      'SabPaisa plugin credentials and callback URL configuration'
+      'WordPress 3.9.2 or higher running WooCommerce 2.4+',
+      'SabPaisa merchant credentials (client code, username, password, spDomain, auth key/IV)',
+      'Plugin package downloaded from the SabPaisa link'
     ],
     setup: [
-      'Upload sabpaisa-woocommerce.zip via WordPress plugin manager',
-      'Configure sandbox credentials inside WooCommerce payment settings',
-      'Enable webhook endpoint created by the plugin',
-      'Place sandbox orders to validate status transitions'
+      'Download the SabPaisa WooCommerce plugin via the provided link',
+      'Install and activate the plugin via WordPress → Plugins → Add New → Upload',
+      'Configure WooCommerce → Settings → Payments → SabPaisa with required credentials',
+      'Enable the payment method and test via staging before going live'
     ],
-    sampleCodeLink: 'https://github.com/sabpaisa/plugin-woocommerce',
+    sampleCodeLink: 'https://bitbucket.org/sabpaisa-wp-29/ios_sp_kit_2/src/main/',
     metadataTag: 'WOOCOMMERCE_PLUGIN',
-    requestMetadata: { platform: 'WooCommerce' },
-    responseMetadata: { platform: 'WooCommerce' },
-    requestFormat: createPluginRequestFormat('WooCommerce', 'https://sandbox.api.sabpaisa.in/v1/plugins/woocommerce/orders'),
-    responseFormat: {
-      transport: 'Plugin webhook handlers receive JSON payloads and update WooCommerce order notes.',
-      notes: [
-        'Ensure the plugin response signature is validated before marking orders paid.',
-        'WooCommerce order status is set based on the SabPaisa status field.',
-        'Refunds triggered in WooCommerce are relayed to SabPaisa via plugin hooks.'
-      ]
-    },
-    requestParameters: extendRequestParameters(
-      {
-        name: 'pluginMetadata.storeUrl',
-        type: 'string',
-        required: true,
-        description: 'Origin URL of the WooCommerce store submitting the request.'
-      },
-      {
-        name: 'pluginMetadata.pluginVersion',
-        type: 'string',
-        required: true,
-        description: 'Version of the installed SabPaisa plugin for support diagnostics.'
-      }
-    ),
-    responseParameters: extendResponseParameters(
-      {
-        name: 'orderStatus',
-        type: 'string',
-        description: 'Mapped WooCommerce order status after processing the response.'
-      }
-    ),
+    requestFormat: defaultRequestFormat,
+    responseFormat: defaultResponseFormat,
     endpoints: {
-      sandbox: 'https://sandbox.api.sabpaisa.in/v1/plugins/woocommerce/orders',
-      production: 'https://api.sabpaisa.in/v1/plugins/woocommerce/orders'
+      sandbox: 'https://stage-securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1',
+      production: 'https://securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1'
     }
   }),
   buildKit('odoo', 'Odoo', {
-    purpose: 'Integrate SabPaisa with Odoo ERP using the official payment acquirer module.',
-    useCases: [
-      'Odoo eCommerce storefronts needing SabPaisa checkout',
-      'ERP-driven invoicing workflows with automated reconciliation',
-      'Partner marketplaces managed through Odoo backend'
-    ],
+    purpose:
+      'Step-by-step SabPaisa Payment Gateway integration for Odoo: download module, install, configure credentials, and move from test to live.',
+    useCases: [],
     prerequisites: [
-      'Odoo 17 enterprise or community edition',
-      'Payment acquirer module installed with developer mode access',
-      'SabPaisa credentials stored in Odoo system parameters'
+      'Running Odoo instance (version 18.0 or compatible)',
+      'SabPaisa merchant account with API credentials',
+      'Ability to install custom modules (developer mode/admin access)'
     ],
     setup: [
-      'Install sabpaisa_odoo_payment module',
-      'Activate SabPaisa acquirer in Odoo settings and add sandbox keys',
-      'Configure webhook controllers to accept SabPaisa callbacks',
-      'Process test invoices to verify payment and settlement entries'
+      'Download the SabPaisa Odoo module from Odoo Apps',
+      'Upload the extracted module into the Odoo addons path and restart the service',
+      'Update the apps list, activate the SabPaisa provider, and enter API credentials (client code, username, password, auth key/IV, PG URLs)',
+      'Test in “Test Mode” before switching to “Live Mode” for production'
     ],
-    sampleCodeLink: 'https://github.com/sabpaisa/plugin-odoo',
+    sampleCodeLink: 'https://apps.odoo.com/apps/modules/18.0/payment_sabpaisa',
     metadataTag: 'ODOO_PLUGIN',
-    requestMetadata: { platform: 'Odoo' },
-    responseMetadata: { platform: 'Odoo' },
-    requestFormat: createPluginRequestFormat('Odoo', 'https://sandbox.api.sabpaisa.in/v1/plugins/odoo/orders'),
-    responseFormat: {
-      transport: 'Odoo controllers receive JSON payloads and update payment transaction records.',
-      notes: [
-        'Validate the signature before setting transaction_state to done.',
-        'Leverage Odoo schedulers to poll SabPaisa for reconciliation if webhooks fail.',
-        'Map SabPaisa paymentId to Odoo acquirer reference for audits.'
-      ]
-    },
+    requestFormat: defaultRequestFormat,
+    responseFormat: defaultResponseFormat,
     endpoints: {
-      sandbox: 'https://sandbox.api.sabpaisa.in/v1/plugins/odoo/orders',
-      production: 'https://api.sabpaisa.in/v1/plugins/odoo/orders'
+      sandbox: 'https://stage-securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1',
+      production: 'https://securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1'
     }
   }),
   buildKit('wix', 'Wix', {

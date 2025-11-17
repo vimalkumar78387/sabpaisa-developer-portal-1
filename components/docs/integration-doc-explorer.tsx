@@ -16,12 +16,41 @@ type Props = {
   categories: IntegrationDocCategory[]
 }
 
-export function IntegrationDocExplorer({ categories }: Props) {
-  const firstCategory = categories[0]
-  const firstKit = firstCategory?.kits[0]
+const resolveSelection = (
+  categories: IntegrationDocCategory[],
+  hash: string | null
+): { categoryId: string; kitId: string } => {
+  const fallbackCategory = categories[0]
+  const fallbackKit = fallbackCategory?.kits[0]
+  if (!fallbackCategory || !fallbackKit) {
+    return { categoryId: '', kitId: '' }
+  }
 
-  const [activeCategoryId, setActiveCategoryId] = useState(firstCategory?.id ?? '')
-  const [activeKitId, setActiveKitId] = useState(firstKit?.id ?? '')
+  if (hash) {
+    for (const category of categories) {
+      if (hash === category.id) {
+        return { categoryId: category.id, kitId: category.kits[0]?.id ?? fallbackKit.id }
+      }
+
+      for (const kit of category.kits) {
+        const composite = `${category.id}-${kit.id}`
+        if (composite === hash) {
+          return { categoryId: category.id, kitId: kit.id }
+        }
+      }
+    }
+  }
+
+  return { categoryId: fallbackCategory.id, kitId: fallbackKit.id }
+}
+
+export function IntegrationDocExplorer({ categories }: Props) {
+  const initialHash =
+    typeof window === 'undefined' ? null : window.location.hash.replace('#', '')
+  const initialSelection = resolveSelection(categories, initialHash)
+
+  const [activeCategoryId, setActiveCategoryId] = useState(initialSelection.categoryId)
+  const [activeKitId, setActiveKitId] = useState(initialSelection.kitId)
   const contentRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -29,24 +58,9 @@ export function IntegrationDocExplorer({ categories }: Props) {
 
     const applyHash = () => {
       const hash = window.location.hash.replace('#', '')
-      if (!hash) return
-
-      for (const category of categories) {
-        if (hash === category.id) {
-          setActiveCategoryId(category.id)
-          setActiveKitId(category.kits[0]?.id ?? '')
-          return
-        }
-
-        for (const kit of category.kits) {
-          const composite = `${category.id}-${kit.id}`
-          if (composite === hash) {
-            setActiveCategoryId(category.id)
-            setActiveKitId(kit.id)
-            return
-          }
-        }
-      }
+      const next = resolveSelection(categories, hash || null)
+      setActiveCategoryId(next.categoryId)
+      setActiveKitId(next.kitId)
     }
 
     applyHash()
@@ -54,8 +68,11 @@ export function IntegrationDocExplorer({ categories }: Props) {
     return () => window.removeEventListener('hashchange', applyHash)
   }, [categories])
 
-  const activeCategory = categories.find((category) => category.id === activeCategoryId) ?? firstCategory
-  const activeKit = activeCategory?.kits.find((kit) => kit.id === activeKitId) ?? firstKit
+  const activeCategory =
+    categories.find((category) => category.id === activeCategoryId) ??
+    categories[0]
+  const activeKit =
+    activeCategory?.kits.find((kit) => kit.id === activeKitId) ?? activeCategory?.kits[0]
 
   useEffect(() => {
     if (typeof window === 'undefined') return
