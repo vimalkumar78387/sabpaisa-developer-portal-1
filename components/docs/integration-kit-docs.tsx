@@ -75,6 +75,12 @@ const SubSection = ({ title, children }: { title: string; children: React.ReactN
   </section>
 )
 
+const FlowBanner = () => (
+  <div className="overflow-hidden rounded-3xl border border-border/60 bg-background/80 p-4 shadow-sm shadow-black/5">
+    <Image src="/Flow.svg" alt="SabPaisa integration process flow" width={1600} height={420} className="h-auto w-full" />
+  </div>
+)
+
 const VideoEmbed = ({ url, title }: { url?: string; title: string }) => {
   if (!url) return null
   return (
@@ -1888,35 +1894,80 @@ const KitSections = ({ kit }: { kit: IntegrationKitDoc }) => {
   const sampleTitles = sampleSectionTitleMap[kit.id] ?? sampleSectionTitleMap.default
 
   if (kit.id === 'woocommerce-plugin') {
-    return <WooCommerceCustomSections kit={kit} />
+    return (
+      <div className="space-y-6">
+        <FlowBanner />
+        <WooCommerceCustomSections kit={kit} />
+      </div>
+    )
   }
 
   if (kit.id === 'opencart') {
-    return <OpenCartCustomSections kit={kit} />
+    return (
+      <div className="space-y-6">
+        <FlowBanner />
+        <OpenCartCustomSections kit={kit} />
+      </div>
+    )
   }
 
   if (kit.id === 'wix') {
-    return <WixCustomSections />
+    return (
+      <div className="space-y-6">
+        <FlowBanner />
+        <WixCustomSections />
+      </div>
+    )
   }
 
   if (kit.id === 'odoo') {
-    return <OdooCustomSections kit={kit} />
+    return (
+      <div className="space-y-6">
+        <FlowBanner />
+        <OdooCustomSections kit={kit} />
+      </div>
+    )
   }
 
   if (kit.id === 'ios') {
-    return <IOSCustomSections kit={kit} />
+    return (
+      <div className="space-y-6">
+        <FlowBanner />
+        <IOSCustomSections kit={kit} />
+      </div>
+    )
   }
 
   if (kit.id === 'android') {
-    return <AndroidCustomSections kit={kit} />
+    return (
+      <div className="space-y-6">
+        <FlowBanner />
+        <AndroidCustomSections kit={kit} />
+      </div>
+    )
+  }
+
+  if (kit.id === 'flutter') {
+    return (
+      <div className="space-y-6">
+        <FlowBanner />
+        <FlutterCustomSections kit={kit} />
+      </div>
+    )
   }
 
   if (kit.id === 'react-native') {
-    return <ReactNativeCustomSections kit={kit} />
+    return (
+      <div className="space-y-6">
+        <FlowBanner />
+        <ReactNativeCustomSections kit={kit} />
+      </div>
+    )
   }
 
   return (
     <div className="space-y-8 text-sm leading-6 text-muted-foreground">
+      <FlowBanner />
       <SubSection title="Overview of the Integration Process">
         <p className="text-base text-foreground">{kit.overview.purpose}</p>
       </SubSection>
