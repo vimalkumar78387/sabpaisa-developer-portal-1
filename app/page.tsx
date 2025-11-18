@@ -13,10 +13,7 @@ import { FeatureCard } from '@/components/ui/feature-card'
 import {
   ArrowRight,
   Building2,
-  Check,
-  CheckCircle2,
   Code,
-  Copy,
   BookOpen,
   CreditCard,
   Cpu,
@@ -260,35 +257,21 @@ const faqSchema = {
   })),
 }
 
-const heroSampleSnippet = {
-  label: 'REST',
-  language: 'typescript',
-  description: 'Create a checkout intent with guaranteed idempotency.',
-  code: [
-    "import { SabPaisa } from '@sabpaisa/payments'",
-    '',
-    'const sabpaisa = new SabPaisa({',
-    '  clientCode: process.env.SABPAISA_CLIENT_CODE!,',
-    '  clientSecret: process.env.SABPAISA_CLIENT_SECRET!,',
-    "  environment: 'sandbox',",
-    '})',
-    '',
-    'const intent = await sabpaisa.payments.create({',
-    '  amount: 125000,',
-    "  currency: 'INR',",
-    "  orderId: 'order_82XT92',",
-    '  customer: {',
-    "    name: 'Aarav Malhotra',",
-    "    email: 'aarav@example.com',",
-    "    phone: '9876543210',",
-    '  },',
-    '  returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payments/success`,',
-    '  webhookUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/webhooks/payments`,',
-    '})',
-    '',
-    'console.log(intent.paymentUrl)',
-  ].join('\n'),
-}
+const heroSampleSnippet = [
+  'import PaymentForm from "sabpaisa-pg-dev";',
+  '',
+  'const SabPaisaPaymentForm = ({ formData, onResponse }) => {',
+  '  return (',
+  '    <PaymentForm',
+  '      {...formData}',
+  "      callbackFunction={onResponse}",
+  "      env='stag' // Set to 'prod' for production",
+  '    />',
+  '  );',
+  '};',
+  '',
+  'export default SabPaisaPaymentForm;'
+].join('\n')
 
 export default function HomePage() {
   useEffect(() => {
@@ -313,20 +296,7 @@ export default function HomePage() {
     }
   }, [])
 
-  const [copiedSnippet, setCopiedSnippet] = useState<string | null>(null)
-
-
-  const handleCopySnippet = async (snippetId: string, code: string) => {
-    try {
-      await navigator.clipboard.writeText(code)
-      setCopiedSnippet(snippetId)
-      setTimeout(() => {
-        setCopiedSnippet((current) => (current === snippetId ? null : current))
-      }, 2000)
-    } catch (error) {
-      console.error('Unable to copy snippet', error)
-    }
-  }
+  const [activeFaqIndex, setActiveFaqIndex] = useState(0)
 
   const shouldReduceMotion = useReducedMotion()
   const animated = !shouldReduceMotion
@@ -435,54 +405,31 @@ export default function HomePage() {
               <AnimatedDiv className="relative" delay={0.15} variant={scaleVariant}>
                 <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/40 via-white/10 to-transparent backdrop-blur-lg dark:from-white/10 dark:via-white/5" />
                 <div className="relative rounded-3xl border border-white/30 bg-background/80 p-6 shadow-2xl backdrop-blur">
-                  <div className="flex items-center justify-between text-xs font-semibold uppercase text-muted-foreground">
-                    <span className="flex items-center gap-2">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                       <Rocket className="h-4 w-4 text-primary" />
-                      Sandbox session
-                    </span>
-                    <span className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-primary">
-                      <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5">
-                        {heroSampleSnippet.label}
-                      </span>
-                      {heroSampleSnippet.language.toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="mt-4">
-                    <div className="relative rounded-2xl border border-white/10 bg-slate-950/95 p-4 text-sm text-slate-100 shadow-inner">
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="absolute right-4 top-4 h-8 w-8 rounded-full border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
-                        onClick={() => handleCopySnippet('hero-sample', heroSampleSnippet.code)}
-                      >
-                        {copiedSnippet === 'hero-sample' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                      <pre className="max-h-[260px] overflow-x-auto whitespace-pre-wrap font-mono text-xs leading-6 text-slate-200">
-                        {heroSampleSnippet.code}
-                      </pre>
-                      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-                        <span>{heroSampleSnippet.description}</span>
-                        <Badge
-                          variant="outline"
-                          className="border-white/20 bg-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-white"
-                        >
-                          {heroSampleSnippet.language}
-                        </Badge>
-                      </div>
+                      SabPaisaPaymentForm example
                     </div>
-                  </div>
-                  <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                    {heroMetrics.map((metric, metricIdx) => (
-                      <AnimatedDiv
-                        key={metric.label}
-                        className="rounded-2xl border border-white/20 bg-white/40 px-4 py-3 text-sm shadow-sm backdrop-blur dark:bg-white/5 tilt-card"
-                        delay={0.2 + metricIdx * 0.05}
-                      >
-                        <div className="text-sm font-semibold text-primary">{metric.value}</div>
-                        <div className="text-xs text-muted-foreground">{metric.label}</div>
-                      </AnimatedDiv>
-                    ))}
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/95 p-4 text-sm text-slate-100 shadow-inner">
+                      <pre className="max-h-[320px] overflow-x-auto whitespace-pre font-mono text-xs leading-6">
+                        {heroSampleSnippet}
+                      </pre>
+                      <p className="mt-3 text-xs text-slate-400">
+                        Replace the placeholders with your sandbox credentials to preview the hosted checkout integration.
+                      </p>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      {heroMetrics.map((metric, metricIdx) => (
+                        <AnimatedDiv
+                          key={metric.label}
+                          className="rounded-2xl border border-white/20 bg-white/40 px-4 py-3 text-sm shadow-sm backdrop-blur dark:bg-white/5 tilt-card"
+                          delay={0.2 + metricIdx * 0.05}
+                        >
+                          <div className="text-sm font-semibold text-primary">{metric.value}</div>
+                          <div className="text-xs text-muted-foreground">{metric.label}</div>
+                        </AnimatedDiv>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </AnimatedDiv>
@@ -715,17 +662,36 @@ export default function HomePage() {
                 From certification timelines to webhook retries, we have detailed guides to keep you moving quickly.
               </p>
             </AnimatedDiv>
-            <div className="mt-10 space-y-6">
-              {faqItems.map((item, idx) => (
-                <AnimatedDiv
-                  key={item.question}
-                  className="rounded-3xl border border-border/60 bg-muted/30 p-6 shadow-sm"
-                  delay={0.47 + idx * 0.04}
-                >
-                  <h3 className="text-lg font-semibold text-foreground">{item.question}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{item.answer}</p>
+            <div className="mt-10 grid gap-6 lg:grid-cols-[320px,1fr]">
+              <div className="rounded-3xl border border-border/60 bg-muted/30 p-4">
+                <ul className="space-y-2">
+                  {faqItems.map((item, idx) => {
+                    const isActive = idx === activeFaqIndex
+                    return (
+                      <li key={item.question}>
+                        <button
+                          type="button"
+                          onClick={() => setActiveFaqIndex(idx)}
+                          className={cn(
+                            'w-full rounded-2xl border px-4 py-3 text-left text-sm transition',
+                            isActive
+                              ? 'border-primary/30 bg-primary/10 text-primary'
+                              : 'border-transparent bg-background/70 text-foreground hover:border-border/60'
+                          )}
+                        >
+                          {item.question}
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+              <div className="rounded-3xl border border-border/60 bg-background/90 p-6 shadow-sm">
+                <AnimatedDiv className="space-y-3" delay={0.55}>
+                  <h3 className="text-lg font-semibold text-foreground">{faqItems[activeFaqIndex].question}</h3>
+                  <p className="text-sm text-muted-foreground">{faqItems[activeFaqIndex].answer}</p>
                 </AnimatedDiv>
-              ))}
+              </div>
             </div>
           </div>
         </AnimatedSection>

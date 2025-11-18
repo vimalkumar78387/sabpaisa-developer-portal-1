@@ -44,54 +44,59 @@ const integrationOptions = [
   {
     title: 'Server-Side Integration',
     description: 'Backend API integration for secure payment processing',
-    href: '/docs/integration/server',
+    href: '/docs?kit=server-integration#server-integration',
     badge: 'Recommended'
   },
   {
     title: 'Client-Side Integration',
     description: 'Frontend JavaScript integration for web applications',
-    href: '/docs/integration/web',
+    href: '/docs?kit=web-integration#web-integration',
     badge: 'Quick Setup'
   },
   {
     title: 'Mobile SDK',
     description: 'Native mobile SDKs for iOS and Android applications',
-    href: '/docs/integration/native',
+    href: '/docs?kit=native-integration#native-integration',
     badge: 'Mobile'
   }
 ]
 
-const sampleCode = `// Initialize SabPaisa Payment
-const sabPaisa = new SabPaisa({
-  clientCode: 'your_client_code',
-  clientSecret: 'your_client_secret',
-  environment: 'sandbox' // or 'production'
-});
+const sampleCode = `import React, { useState } from "react";
+import SabPaisaPaymentForm from "./SabPaisaPaymentForm";
 
-// Create a payment request
-const paymentRequest = {
-  amount: 1000, // Amount in paise (₹10.00)
-  currency: 'INR',
-  orderId: 'order_123456',
-  customerInfo: {
-    name: 'John Doe',
-    email: 'john@example.com',
-    phone: '9876543210'
-  },
-  returnUrl: 'https://yourapp.com/payment/success',
-  webhookUrl: 'https://yourapp.com/webhook/payment'
+const App = () => {
+  const [paymentData, setPaymentData] = useState({
+    clientCode: "YOUR_CLIENT_CODE",
+    transUserName: "YOUR_USERNAME",
+    transUserPassword: "YOUR_PASSWORD",
+    authKey: "YOUR_ENCRYPTION_KEY",
+    authIV: "YOUR_ENCRYPTION_IV",
+    callbackUrl: "https://your-site.com/callback",
+    clientTxnId: "123345555557",
+    payerName: "John Doe",
+    payerEmail: "john@example.com",
+    payerMobile: "9876543210",
+    amount: "100.00",
+    channelId: "npm",
+    url: "https://secure.sabpaisa.in/SabPaisa/sabPaisaInit?v=1",
+  });
+
+  const handlePaymentResponse = (response) => {
+    console.log("Payment Gateway Response:", response);
+  };
+
+  return (
+    <div>
+      <h1>React SabPaisa Payment Integration</h1>
+      <SabPaisaPaymentForm
+        formData={paymentData}
+        onResponse={handlePaymentResponse}
+      />
+    </div>
+  );
 };
 
-// Initiate payment
-try {
-  const response = await sabPaisa.createPayment(paymentRequest);
-  console.log('Payment URL:', response.paymentUrl);
-  
-  // Redirect user to payment URL
-  window.location.href = response.paymentUrl;
-} catch (error) {
-  console.error('Payment creation failed:', error);
-}`
+export default App;`
 
 export default function GettingStartedPage() {
   return (
@@ -200,8 +205,8 @@ export default function GettingStartedPage() {
                 </p>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span>Base URL:</span>
-                    <code className="text-xs bg-muted px-1 py-0.5 rounded">https://sandbox.sabpaisa.com</code>
+                    <span>Staging URL:</span>
+                    <code className="text-xs bg-muted px-1 py-0.5 rounded">https://stage-securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1</code>
                   </div>
                   <div className="flex justify-between">
                     <span>Environment:</span>
@@ -224,8 +229,8 @@ export default function GettingStartedPage() {
                 </p>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span>Base URL:</span>
-                    <code className="text-xs bg-muted px-1 py-0.5 rounded">https://api.sabpaisa.com</code>
+                    <span>Live URL:</span>
+                    <code className="text-xs bg-muted px-1 py-0.5 rounded">https://securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1</code>
                   </div>
                   <div className="flex justify-between">
                     <span>Environment:</span>

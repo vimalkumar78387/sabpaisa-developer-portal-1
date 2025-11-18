@@ -248,3 +248,4 @@ export const IntegrationKitViewer = ({ categories }: Props) => {
       </section>
     </div>
   )
+}

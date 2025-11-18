@@ -40,6 +40,8 @@ interface NavItem {
   badge?: string
 }
 
+const docLink = (slug: string) => `/docs?kit=${slug}#${slug}`
+
 const navigationItems: NavItem[] = [
   {
     title: 'Getting Started',
@@ -84,46 +86,46 @@ const navigationItems: NavItem[] = [
       {
         title: 'Server Integration',
         items: [
-          { title: 'Java', href: '/docs#server-integration-java' },
-          { title: 'PHP', href: '/docs#server-integration-php' },
-          { title: 'Laravel', href: '/docs#server-integration-laravel' },
-          { title: 'Node.js', href: '/docs#server-integration-nodejs' },
-          { title: 'Python', href: '/docs#server-integration-python' },
-          { title: '.NET', href: '/docs#server-integration-dotnet' }
+          { title: 'Java', href: docLink('server-integration-java') },
+          { title: 'PHP', href: docLink('server-integration-php') },
+          { title: 'Laravel', href: docLink('server-integration-laravel') },
+          { title: 'Node.js', href: docLink('server-integration-nodejs') },
+          { title: 'Python', href: docLink('server-integration-python') },
+          { title: '.NET', href: docLink('server-integration-dotnet') }
         ]
       },
       {
         title: 'Web Integration',
         items: [
-          { title: 'ReactJS', href: '/docs#web-integration-reactjs' },
-          { title: 'AngularJS', href: '/docs#web-integration-angularjs' },
-          { title: 'Vue.js', href: '/docs#web-integration-vuejs' }
+          { title: 'ReactJS', href: docLink('web-integration-reactjs') },
+          { title: 'AngularJS', href: docLink('web-integration-angularjs') },
+          { title: 'Vue.js', href: docLink('web-integration-vuejs') }
         ]
       },
       {
         title: 'Hybrid Integration',
         items: [
-          { title: 'Flutter', href: '/docs#hybrid-integration-flutter' },
-          { title: 'React Native', href: '/docs#hybrid-integration-react-native' },
-          { title: 'Cordova', href: '/docs#hybrid-integration-cordova' },
-          { title: 'Capacitor', href: '/docs#hybrid-integration-capacitor' },
-          { title: 'Ionic', href: '/docs#hybrid-integration-ionic' }
+          { title: 'Flutter', href: docLink('hybrid-integration-flutter') },
+          { title: 'React Native', href: docLink('hybrid-integration-react-native') },
+          { title: 'Cordova', href: docLink('hybrid-integration-cordova') },
+          { title: 'Capacitor', href: docLink('hybrid-integration-capacitor') },
+          { title: 'Ionic', href: docLink('hybrid-integration-ionic') }
         ]
       },
       {
         title: 'Native Integration',
         items: [
-          { title: 'iOS', href: '/docs#native-integration-ios' },
-          { title: 'Android', href: '/docs#native-integration-android' }
+          { title: 'iOS', href: docLink('native-integration-ios') },
+          { title: 'Android', href: docLink('native-integration-android') }
         ]
       },
       {
         title: 'E-commerce Plugin',
         items: [
-          { title: 'WooCommerce Plugin', href: '/docs#ecommerce-plugin-woocommerce-plugin' },
-          { title: 'Odoo', href: '/docs#ecommerce-plugin-odoo' },
-          { title: 'Wix', href: '/docs#ecommerce-plugin-wix' },
-          { title: 'OpenCart', href: '/docs#ecommerce-plugin-opencart' }
+          { title: 'WooCommerce Plugin', href: docLink('ecommerce-plugin-woocommerce-plugin') },
+          { title: 'Odoo', href: docLink('ecommerce-plugin-odoo') },
+          { title: 'Wix', href: docLink('ecommerce-plugin-wix') },
+          { title: 'OpenCart', href: docLink('ecommerce-plugin-opencart') }
         ]
       }
     ]
@@ -134,11 +136,11 @@ const navigationItems: NavItem[] = [
     items: [
       {
         title: 'Transaction Enquiry API',
-        href: '/docs#api-reference-transaction-enquiry'
+        href: docLink('api-reference-transaction-enquiry')
       },
       {
         title: 'Refund API',
-        href: '/docs#api-reference-refund'
+        href: docLink('api-reference-refund')
       }
     ]
   },

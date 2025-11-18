@@ -762,7 +762,42 @@ const reactResponseFormat: IntegrationKitDoc['responseFormat'] = {
   ]
 }
 
-const reactSampleRequest = `SabPaisaPaymentForm.js\nimport React from 'react'\nimport PaymentForm from 'sabpaisa-pg-dev'\n\nconst SabPaisaPaymentForm = ({ formData, onResponse }) => (\n  <PaymentForm\n    {...formData}\n    callbackFunction={onResponse}\n    env="stag"\n  />\n)\n\nexport default SabPaisaPaymentForm\n\nApp.js\nimport React, { useState } from 'react'\nimport SabPaisaPaymentForm from './SabPaisaPaymentForm'\n\nconst App = () => {\n  const [paymentData] = useState({\n    clientCode: 'DJ020',\n    transUserName: 'DJL754@sp',\n    transUserPassword: '4q3qhgmJNM4m',\n    authKey: 'BASE64_AES_KEY',\n    authIV: 'BASE64_IV',\n    callbackUrl: 'https://your-site.com/callback',\n    clientTxnId: '123345555557',\n    payerName: 'John Doe',\n    payerEmail: 'john@example.com',\n    payerMobile: '9876543210',\n    amount: '100.00',\n    channelId: 'npm',\n    url: 'https://securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1'\n  })\n\n  const handlePaymentResponse = (response) => {\n    console.log('Payment Gateway Response:', response)\n  }\n\n  return (\n    <SabPaisaPaymentForm\n      formData={paymentData}\n      onResponse={handlePaymentResponse}\n    />\n  )\n}\n\nexport default App`
+const reactSampleRequest = `import React, { useState } from "react";
+import SabPaisaPaymentForm from "./SabPaisaPaymentForm";
+
+const App = () => {
+  const [paymentData, setPaymentData] = useState({
+    clientCode: "YOUR_CLIENT_CODE",
+    transUserName: "YOUR_USERNAME",
+    transUserPassword: "YOUR_PASSWORD",
+    authKey: "YOUR_ENCRYPTION_KEY",
+    authIV: "YOUR_ENCRYPTION_IV",
+    callbackUrl: "https://your-site.com/callback",
+    clientTxnId: "123345555557",
+    payerName: "John Doe",
+    payerEmail: "john@example.com",
+    payerMobile: "9876543210",
+    amount: "100.00",
+    channelId: "npm",
+    url: "https://securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1",
+  });
+
+  const handlePaymentResponse = (response) => {
+    console.log("Payment Gateway Response:", response);
+  };
+
+  return (
+    <div>
+      <h1>React SabPaisa Payment Integration</h1>
+      <SabPaisaPaymentForm
+        formData={paymentData}
+        onResponse={handlePaymentResponse}
+      />
+    </div>
+  );
+};
+
+export default App;`
 
 const reactSampleResponse = `handlePaymentResponse console output\nPayment Gateway Response: {\n  status: 'SUCCESS',\n  statusCode: '0000',\n  clientCode: 'DJ020',\n  clientTxnId: '123345555557',\n  sabpaisaTxnId: '347730705250114130',\n  paymentMode: 'NETBANKING',\n  bankName: 'SabPaisaBank',\n  paidAmount: '100.00',\n  sabpaisaMessage: 'Transaction is successfully done',\n  bankMessage: 'Approved',\n  transDate: '2025-02-17 13:47:22'\n}`
 
@@ -1035,7 +1070,6 @@ const serverIntegrationKits: IntegrationKitDoc[] = [
     ],
     prerequisites: [
       'Merchant runtime (Java/Spring) prepared with SabPaisa documentation, SDK, or plugin along with UAT credentials shared by SabPaisa',
-      'Seamless flag enabled by the SabPaisa backend team for the merchant account',
       'Client code, transaction username/password, authKey, authIV, and callback URL stored securely in the application configuration'
     ],
     setup: [
@@ -1072,7 +1106,6 @@ const serverIntegrationKits: IntegrationKitDoc[] = [
     ],
     prerequisites: [
       'Merchant PHP environment set up with SabPaisa documentation or plugin plus UAT credentials shared by SabPaisa',
-      'Seamless flag enabled for the merchant account by the SabPaisa backend team',
       'Server capable of HTTPS POST requests with a publicly reachable callback URL'
     ],
     setup: [
@@ -1142,8 +1175,7 @@ const serverIntegrationKits: IntegrationKitDoc[] = [
     ],
     prerequisites: [
       'Node.js environment configured per SabPaisa guide with UAT credentials shared by SabPaisa',
-      'Server capable of HTTPS POSTs plus a publicly reachable callback URL',
-      'Seamless flag enabled for the merchant account before production cutover'
+      'Server capable of HTTPS POSTs plus a publicly reachable callback URL'
     ],
     setup: [
       'Collect mandatory payer inputs and generate a unique clientTxnId within your Node.js app',
@@ -1173,8 +1205,7 @@ const serverIntegrationKits: IntegrationKitDoc[] = [
       'Replicates the SabPaisa Python playbook: collect payer data, encrypt the request string into encData, POST it to sabPaisaInit, then decrypt encResponse to reconcile the order.',
     useCases: [],
     prerequisites: [
-      'Set up the Python environment per the SabPaisa integration pack and load the documentation/plugin plus UAT credentials shared by SabPaisa.',
-      'Request the Seamless flag from the SabPaisa backend team before kicking off UAT or production traffic.'
+      'Set up the Python environment per the SabPaisa integration pack and load the documentation/plugin plus UAT credentials shared by SabPaisa.'
     ],
     setup: [
       'The payer enters all mandatory fields (name, email, mobile, amount) on the merchant form and a fresh clientTxnId is generated.',
@@ -1203,8 +1234,7 @@ const serverIntegrationKits: IntegrationKitDoc[] = [
       'Follows the SabPaisa ASP.NET (2.0) note: capture payer info inside .NET, encrypt the concatenated string into encData, post it to sabPaisaInit, then decrypt the callback to update the merchant ledger.',
     useCases: [],
     prerequisites: [
-      'Prepare the ASP.NET environment with the SabPaisa-provided documentation or plugin plus the UAT credentials shared by the SabPaisa team.',
-      'Coordinate with SabPaisa backend to enable the Seamless flag on the merchant account before performing UAT or moving to production.'
+      'Prepare the ASP.NET environment with the SabPaisa-provided documentation or plugin plus the UAT credentials shared by the SabPaisa team.'
     ],
     setup: [
       'Payer fills the merchant form with all mandatory details and the app issues a unique clientTxnId for that attempt.',
@@ -1696,10 +1726,18 @@ const integrationDocCategories = [
 ] as const
 
 
-export default function DocsPage() {
+export default function DocsPage({
+  searchParams,
+}: {
+  searchParams?: { kit?: string }
+}) {
+  const initialKitHash = searchParams?.kit ?? null
   return (
     <div className="mx-auto max-w-6xl space-y-12 px-6 py-12">
-      <IntegrationDocExplorer categories={integrationDocCategories} />
+      <IntegrationDocExplorer
+        categories={integrationDocCategories}
+        initialSelectionHash={initialKitHash}
+      />
 
       <div className="rounded-3xl border border-border/60 bg-muted/30 p-10 shadow-inner">
         <h2 className="text-2xl font-semibold">Need help?</h2>

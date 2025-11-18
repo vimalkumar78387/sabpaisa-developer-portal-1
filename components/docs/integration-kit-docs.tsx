@@ -73,13 +73,20 @@ const SubSection = ({ title, children }: { title: string; children: React.ReactN
       <div className="space-y-4 text-sm leading-6 text-muted-foreground">{children}</div>
     </div>
   </section>
-)
+);
 
 const FlowBanner = () => (
-  <div className="overflow-hidden rounded-3xl border border-border/60 bg-background/80 p-4 shadow-sm shadow-black/5">
-    <Image src="/Flow.svg" alt="SabPaisa integration process flow" width={1600} height={420} className="h-auto w-full" />
-  </div>
-)
+    <div className="overflow-hidden rounded-3xl border border-border/60 bg-background/80 p-4 shadow-sm shadow-black/5">
+      <Image
+        src="/Flow.svg"
+        alt="SabPaisa integration process flow"
+        width={766}
+        height={84}
+        className="h-auto w-full"
+        priority
+      />
+    </div>
+  )
 
 const VideoEmbed = ({ url, title }: { url?: string; title: string }) => {
   if (!url) return null

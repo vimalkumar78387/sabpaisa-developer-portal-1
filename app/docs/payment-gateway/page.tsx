@@ -62,92 +62,238 @@ const integrationSteps = [
   }
 ]
 
-const samplePaymentRequest = `{
-  "amount": 10000,
-  "currency": "INR",
-  "orderId": "order_abc123",
-  "customerInfo": {
-    "name": "John Doe",
-    "email": "john@example.com",
-    "phone": "9876543210"
-  },
-  "productInfo": {
-    "name": "Premium Subscription",
-    "description": "Monthly premium plan"
-  },
-  "returnUrl": "https://yourapp.com/payment/success",
-  "cancelUrl": "https://yourapp.com/payment/cancel",
-  "webhookUrl": "https://yourapp.com/webhook/payment"
+const javaImplementation = `@Service
+public class SabService {
+
+    @Value("\${clientCode}")
+    private String clientCode;
+
+    @Value("\${transUserName}")
+    private String transUserName;
+
+    @Value("\${transUserPassword}")
+    private String transUserPassword;
+
+    @Value("\${callbackUrl}")
+    private String callbackUrl;
+
+    @Value("\${authKey}")
+    private String authKey;
+
+    @Value("\${authIV}")
+    private String authIV;
+
+    public ModelAndView getSabPaisaPgService() {
+
+        String spURL = null;
+
+        String payerName = "Test";
+        String payerEmail = "xyz@gmail.com";
+        long payerMobile = 987456331;
+        String clientTxnId = RandomStringUtils.randomAlphanumeric(20).toUpperCase();
+        System.out.println("clientTxnId :: " + clientTxnId);
+        byte amount = 5;
+        char channelId = 'W';
+
+        spURL = "payerName=" + payerName.trim() + "&payerEmail=" + payerEmail.trim() + "&payerMobile=" + payerMobile
+               + "&clientTxnId=" + clientTxnId.trim() + "&amount=" + amount + "&clientCode=" + clientCode.trim()
+               + "&transUserName=" + transUserName.trim() + "&transUserPassword=" + transUserPassword.trim()
+               + "&callbackUrl=" + callbackUrl.trim() + "&channelId=" + channelId;
+
+        System.out.println("spURL :: " + spURL);
+
+        try {
+            spURL = AES256HMACSHA384HEX.encrypt(authKey.trim(), authIV.trim(), spURL.trim());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        ModelAndView view = new ModelAndView("NewFile");
+
+        view.addObject("encData", spURL);
+        view.addObject("clientCode", clientCode);
+
+        return view;
+    }
+
+    public String getPgResponseService(String encResponse) {
+
+        String decText = null;
+        try {
+            decText = AES256HMACSHA384HEX.decrypt(authKey.trim(), authIV.trim(), encResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("decrypted string: " + decText);
+        if (decText != null) {
+            String[] arr = decText.split("&");
+            for (String str : arr)
+                System.out.println(str);
+        }
+        return decText;
+    }
 }`
 
-const jsImplementation = `// Initialize SabPaisa Payment Gateway
-const sabPaisa = new SabPaisa({
-  clientCode: process.env.SABPAISA_CLIENT_CODE,
-  clientSecret: process.env.SABPAISA_CLIENT_SECRET,
-  environment: 'sandbox' // or 'production'
-});
+const pythonImplementation = `import datetime
 
-// Create payment request
-async function createPayment(orderDetails) {
+class PgService:
+    def __init__(self,
+                 client_code="XXXXX",
+                 trans_user_name="XXXXXXXX",
+                 trans_user_password="XXXXXXXX",
+                 auth_key="XXXXXXXXXXXXXXXXXXXXX",
+                 auth_iv="XXXXXXXXXXXXXXXXXXXXXXXXXX",
+                 call_back_url="http://127.0.0.1:8000/pg/response/",
+                 sp_domain="https://stage-securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1"
+    ):
+        self.client_code = client_code
+        self.trans_user_name = trans_user_name
+        self.trans_user_password = trans_user_password
+        self.call_back_url = call_back_url
+        self.sp_domain = sp_domain
+
+        self.crypto = AES256HMACSHA384HEX(auth_key, auth_iv)
+
+    def request(self):
+        payer_name = 'vimal'
+        payer_mobile = '1234567891'
+        payer_email = 'test@gmail.com'
+
+        client_txn_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+        amount = '10'
+        amount_type = 'INR'
+        channel_id = 'W'
+
+        url = (
+            f"payerName={payer_name}"
+            f"&payerEmail={payer_email}"
+            f"&payerMobile={payer_mobile}"
+            f"&clientTxnId={client_txn_id}"
+            f"&amount={amount}"
+            f"&clientCode={self.client_code}"
+            f"&transUserName={self.trans_user_name}"
+            f"&transUserPassword={self.trans_user_password}"
+            f"&callbackUrl={self.call_back_url}"
+            f"&amountType={amount_type}"
+            f"&channelId={channel_id}"
+        )
+
+        encrypted = self.crypto.encrypt(url).strip()
+        return encrypted
+
+    def res(self, enc_response):
+        decrypted = self.crypto.decrypt(enc_response.strip())
+        return decrypted.split("&")`
+
+const nodeImplementation = `app.get("/initPgReq", (req, res) => {
+  const payerName = "Name";
+  const payerEmail = "test@email.in";
+  const payerMobile = "1234567890";
+  const clientTxnId = randomStr(20, "12345abcde");
+  const amount = 20;
+  const clientCode = "XXXXX";
+  const transUserName = "XXXXXXXX";
+  const transUserPassword = "XXXXXXX";
+  const callbackUrl = "http://localhost:3000/getPgRes";
+  const channelId = "W";
+  const spURL = "https://stage-securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1"; // Staging
+
+  const mcc = "5666";
+
+  const now = new Date();
+  const pad = n => n < 10 ? '0' + n : n;
+  const transDate =
+    now.getFullYear() + '-' +
+    pad(now.getMonth() + 1) + '-' +
+    pad(now.getDate()) + ' ' +
+    pad(now.getHours()) + ':' +
+    pad(now.getMinutes()) + ':' +
+    pad(now.getSeconds());
+
+  const stringForRequest =
+    "payerName=" +
+    payerName +
+    "&payerEmail=" +
+    payerEmail +
+    "&payerMobile=" +
+    payerMobile +
+    "&clientTxnId=" +
+    clientTxnId +
+    "&amount=" +
+    amount +
+    "&clientCode=" +
+    clientCode +
+    "&transUserName=" +
+    transUserName +
+    "&transUserPassword=" +
+    transUserPassword +
+    "&callbackUrl=" +
+    callbackUrl +
+    "&channelId=" +
+    channelId +
+    "&mcc=" +
+    mcc +
+    "&transDate=" +
+    transDate;
+
+  console.log("stringForRequest :: " + stringForRequest);
+
+  let encryptedStringForRequest;
   try {
-    const paymentRequest = {
-      amount: orderDetails.amount, // Amount in paise
-      currency: 'INR',
-      orderId: orderDetails.orderId,
-      customerInfo: orderDetails.customer,
-      productInfo: orderDetails.product,
-      returnUrl: \`\${process.env.BASE_URL}/payment/success\`,
-      cancelUrl: \`\${process.env.BASE_URL}/payment/cancel\`,
-      webhookUrl: \`\${process.env.BASE_URL}/webhook/payment\`
-    };
-
-    const response = await sabPaisa.payments.create(paymentRequest);
-    
-    return {
-      success: true,
-      paymentUrl: response.paymentUrl,
-      transactionId: response.transactionId
-    };
-  } catch (error) {
-    console.error('Payment creation failed:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}`
-
-const webhookHandler = `// Webhook handler for payment notifications
-app.post('/webhook/payment', express.raw({type: 'application/json'}), (req, res) => {
-  const signature = req.headers['x-sabpaisa-signature'];
-  const payload = req.body;
-
-  // Verify webhook signature
-  const expectedSignature = sabPaisa.webhooks.generateSignature(payload);
-  
-  if (signature !== expectedSignature) {
-    return res.status(400).json({ error: 'Invalid signature' });
+    encryptedStringForRequest = encrypt(stringForRequest);
+  } catch (err) {
+    console.error("Encryption failed:", err);
+    return res.status(500).send("Encryption error");
   }
 
-  const event = JSON.parse(payload);
-  
-  switch (event.type) {
-    case 'payment.success':
-      // Handle successful payment
-      updateOrderStatus(event.data.orderId, 'paid');
-      break;
-      
-    case 'payment.failed':
-      // Handle failed payment
-      updateOrderStatus(event.data.orderId, 'failed');
-      break;
-      
-    default:
-      console.log('Unhandled event type:', event.type);
-  }
+  console.log("encryptedStringForRequest :: " + encryptedStringForRequest);
 
-  res.status(200).json({ received: true });
+  const formData = {
+    spURL: spURL,
+    encData: encryptedStringForRequest,
+    clientCode: clientCode,
+  };
+
+  res.render(__dirname + "/pg-form-request.html", { formData: formData });
 });`
+
+const phpImplementation = `<?php 
+session_start();
+include 'Authentication.php';
+
+$clientCode='XXXXX';
+$username='XXXXX';
+$password='XXXXXXX';
+$authKey='XXXXXXXXXXXXXXXXXX';
+$authIV='XXXXXXXXXXXXXXXXXXXXX';
+
+$payerName='name';
+$payerEmail='Test@email.in';
+$payerMobile='1234567890';
+$payerAddress='Patna, Bihar';
+
+$clientTxnId=rand(1000,9999);
+$amount=10;
+$amountType='INR';
+$mcc=5137;
+$channelId='W';
+$callbackUrl='http://127.0.0.1/php2.0/SabPaisaPostPgResponse.php';
+
+$encData="?clientCode=".$clientCode."&transUserName=".$username."&transUserPassword=".$password
+."&payerName=".$payerName."&payerMobile=".$payerMobile."&payerEmail=".$payerEmail
+."&payerAddress=".$payerAddress."&clientTxnId=".$clientTxnId."&amount=".$amount
+."&amountType=".$amountType."&mcc=".$mcc."&channelId=".$channelId."&callbackUrl=".$callbackUrl;
+
+$AES256HMACSHA384HEX = new AES256HMACSHA384HEX(); 
+$data = $AES256HMACSHA384HEX->encrypt($authKey, $authIV, $encData);
+?>
+
+<form action="https://stage-securepay.sabPaisa.in/SabPaisa/sabPaisaInit?v=1" method="post">
+  <input type="hidden" name="encData" value="<?php echo $data ?>" id="frm1">
+  <input type="hidden" name="clientCode" value ="<?php echo $clientCode ?>" id="frm2">
+  <input type="submit" id="submitButton" name="submit">
+</form>`
 
 export default function PaymentGatewayPage() {
   return (
@@ -217,51 +363,60 @@ export default function PaymentGatewayPage() {
         <div className="mb-12">
           <h2 className="text-2xl font-semibold mb-6">Implementation Examples</h2>
           
-          <Tabs defaultValue="request" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="request">Payment Request</TabsTrigger>
-              <TabsTrigger value="implementation">JavaScript SDK</TabsTrigger>
-              <TabsTrigger value="webhook">Webhook Handler</TabsTrigger>
+          <Tabs defaultValue="java" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="java">Java implementation</TabsTrigger>
+              <TabsTrigger value="python">Python</TabsTrigger>
+              <TabsTrigger value="php">PHP Implementation</TabsTrigger>
+              <TabsTrigger value="node">Node.js implementation</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="request">
+            <TabsContent value="java">
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Sample Payment Request</h3>
-                <p className="text-muted-foreground">
-                  Here's an example of a payment request payload:
-                </p>
+                <h3 className="text-lg font-semibold">Java PSP Service</h3>
+                <p className="text-muted-foreground">Spring-based service to encrypt parameters and render hosted checkout.</p>
                 <CodeBlock 
-                  code={samplePaymentRequest} 
-                  language="json" 
-                  filename="payment-request.json"
+                  code={javaImplementation} 
+                  language="java" 
+                  filename="SabService.java"
                 />
               </div>
             </TabsContent>
             
-            <TabsContent value="implementation">
+            <TabsContent value="php">
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">JavaScript Implementation</h3>
+                <h3 className="text-lg font-semibold">PHP Implementation</h3>
                 <p className="text-muted-foreground">
-                  Complete implementation using the SabPaisa JavaScript SDK:
+                  Example server-side form post using AES256 encryption helpers:
                 </p>
                 <CodeBlock 
-                  code={jsImplementation} 
-                  language="javascript" 
-                  filename="payment-integration.js"
+                  code={phpImplementation} 
+                  language="php" 
+                  filename="payment-request.php"
                 />
               </div>
             </TabsContent>
             
-            <TabsContent value="webhook">
+            <TabsContent value="python">
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Webhook Handler</h3>
-                <p className="text-muted-foreground">
-                  Handle payment notifications with webhook endpoints:
-                </p>
+                <h3 className="text-lg font-semibold">Python</h3>
+                <p className="text-muted-foreground">Example service that encrypts requests and decrypts responses.</p>
                 <CodeBlock 
-                  code={webhookHandler} 
+                  code={pythonImplementation} 
+                  language="python" 
+                  filename="pg_service.py"
+                />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="node">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Node.js implementation</h3>
+                <p className="text-muted-foreground">Generate encData and post the form using Express.</p>
+                <CodeBlock 
+                  code={nodeImplementation} 
                   language="javascript" 
-                  filename="webhook-handler.js"
+                  filename="initPgReq.js"
                 />
               </div>
             </TabsContent>

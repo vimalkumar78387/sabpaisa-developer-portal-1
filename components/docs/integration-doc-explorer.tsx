@@ -14,6 +14,7 @@ type IntegrationDocCategory = {
 
 type Props = {
   categories: IntegrationDocCategory[]
+  initialSelectionHash?: string | null
 }
 
 const resolveSelection = (
@@ -44,10 +45,8 @@ const resolveSelection = (
   return { categoryId: fallbackCategory.id, kitId: fallbackKit.id }
 }
 
-export function IntegrationDocExplorer({ categories }: Props) {
-  const initialHash =
-    typeof window === 'undefined' ? null : window.location.hash.replace('#', '')
-  const initialSelection = resolveSelection(categories, initialHash)
+export function IntegrationDocExplorer({ categories, initialSelectionHash }: Props) {
+  const initialSelection = resolveSelection(categories, initialSelectionHash ?? null)
 
   const [activeCategoryId, setActiveCategoryId] = useState(initialSelection.categoryId)
   const [activeKitId, setActiveKitId] = useState(initialSelection.kitId)
@@ -58,7 +57,10 @@ export function IntegrationDocExplorer({ categories }: Props) {
 
     const applyHash = () => {
       const hash = window.location.hash.replace('#', '')
-      const next = resolveSelection(categories, hash || null)
+      const searchParams = new URLSearchParams(window.location.search)
+      const queryKit = searchParams.get('kit')
+      const preferredHash = hash || queryKit || initialSelectionHash || null
+      const next = resolveSelection(categories, preferredHash)
       setActiveCategoryId(next.categoryId)
       setActiveKitId(next.kitId)
     }
@@ -66,7 +68,7 @@ export function IntegrationDocExplorer({ categories }: Props) {
     applyHash()
     window.addEventListener('hashchange', applyHash)
     return () => window.removeEventListener('hashchange', applyHash)
-  }, [categories])
+  }, [categories, initialSelectionHash])
 
   const activeCategory =
     categories.find((category) => category.id === activeCategoryId) ??
@@ -79,8 +81,20 @@ export function IntegrationDocExplorer({ categories }: Props) {
     if (!activeCategory || !activeKit) return
 
     const targetHash = `${activeCategory.id}-${activeKit.id}`
-    if (window.location.hash.replace('#', '') !== targetHash) {
-      window.history.replaceState(null, '', `#${targetHash}`)
+    const url = new URL(window.location.href)
+    const currentHash = url.hash.replace('#', '')
+    const currentKitParam = url.searchParams.get('kit')
+
+    if (currentHash !== targetHash) {
+      url.hash = `#${targetHash}`
+    }
+    if (currentKitParam !== targetHash) {
+      url.searchParams.set('kit', targetHash)
+    }
+
+    const nextUrl = url.toString()
+    if (nextUrl !== window.location.href) {
+      window.history.replaceState(null, '', nextUrl)
     }
   }, [activeCategory, activeKit])
 
