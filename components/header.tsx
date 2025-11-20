@@ -159,14 +159,9 @@ function UserMenu() {
   if (!user) {
     return (
       <div className="flex items-center gap-2">
-        <Button asChild variant="ghost" className="rounded-full border border-border/60 px-4">
-          <Link href="https://partner.sabpaisa.in/" target="_blank" rel="noreferrer">
-            Sign in
-          </Link>
-        </Button>
         <Button asChild className="rounded-full px-4 shadow-primary/20">
-          <Link href="https://sabpaisa.in/pricing/" target="_blank" rel="noreferrer">
-            Create account
+          <Link href="https://partner.sabpaisa.in/" target="_blank" rel="noreferrer">
+            Go to Partner Dashboard
           </Link>
         </Button>
       </div>

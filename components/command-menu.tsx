@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Search, BookOpen, PlugZap, MessageSquare, Code2, Sparkles, Layers, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -197,6 +197,9 @@ export function CommandMenu({ className, triggerClassName }: CommandMenuProps) {
           )}
           showCloseButton={false}
         >
+          <DialogHeader className="sr-only">
+            <DialogTitle>Unified search</DialogTitle>
+          </DialogHeader>
           <div className="border-b border-border/60 bg-muted/30 px-4 py-3">
             <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-background/80 px-3">
               <Search className="h-4 w-4 text-muted-foreground" />

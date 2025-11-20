@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, MouseEvent } from 'react'
 import { useEffect, useState } from 'react'
 import Lenis from 'lenis'
 import Image from 'next/image'
@@ -220,29 +220,56 @@ const faqItems = [
   {
     question: 'What should I do if I receive a "Client Transaction ID is missing" error?',
     answer:
-      'Double-check the Client Transaction ID parameter you are sending. Generate a unique identifier between 10 and 18 digits for every attempt to avoid this validation failure.',
+      'If you encounter this error, please verify the client transaction ID parameter. It is recommended to use a Client Transaction ID consisting of 10 to 18 digits.',
   },
   {
     question: 'How can I resolve the "Please Enable API Version" error?',
     answer:
-      'Reach out to your SabPaisa Account Manager with the API version details. The team will enable the required version for your tenant and confirm once it is ready.',
+      'To resolve this error, please contact your Account Manager and provide them with the relevant details regarding the issue you are experiencing.',
   },
   {
-    question: 'What should I do when I see the error "You are not passing the payer name in a valid format"?',
+    question: 'Why am I seeing an "Authentication Failed" error?',
     answer:
-      'Verify that the payer name contains only alphabetic characters and spaces. Remove special characters or extra symbols before submitting the request again.',
+      'An authentication failure typically indicates an issue with your keys. Please ensure that the AuthKey and AuthIV provided by your Account Manager are passed accurately and are valid.',
   },
   {
-    question: 'What should I do if I see the message "You are passing wrong credentials"?',
+    question: 'What should I do if I have issues displaying the response?',
     answer:
-      'Confirm that the clientCode, transaction username, password, and request URL all point to the correct SabPaisa environment (sandbox or production). Update any incorrect values and retry.',
+      'If you experience difficulties with response display, confirm that the correct URL is specified in the callback URL parameter to facilitate proper rendering of the response.',
+  },
+  {
+    question: 'What can I do if there is an issue with the Transaction Enquiry API?',
+    answer:
+      'For issues related to the Transaction Enquiry API, ensure that all mandatory parameters are correctly passed and verify that the encryption and decryption methods are implemented properly.',
   },
   {
     question: 'How do I address issues with encryption or decryption for transaction enquiries?',
     answer:
-      'Cross-check your implementation against the AES-256 reference code supplied for your platform. Ensure the authKey, authIV, and concatenated parameter order match the specification before encrypting or decrypting payloads.',
+      'For any problems with encryption or decryption, please refer to the AES-128 logic as specified in the reference code provided for your platform.',
+  },
+  {
+    question: 'Who should I contact for issues with the Refund API?',
+    answer:
+      'If you encounter issues with the Refund API, please reach out to your Account Manager for the necessary documentation and support.',
+  },
+  {
+    question: 'What should I do when I see the error "You are not passing the payer name in a valid format"?',
+    answer:
+      'If you receive this error, check that the payer name is correctly formatted and free of special characters.',
+  },
+  {
+    question: 'What should I do if I see the message "You are passing wrong credentials"?',
+    answer:
+      'When you encounter this message, please verify that all parameters are being passed correctly and ensure you are using the correct SabPaisa request URL.',
+  },
+  {
+    question: 'What should I do if I have transaction-related issues?',
+    answer:
+      'For any transaction-related issues, please connect with the SabPaisa operations team, who will assist you in resolving your concerns.',
   },
 ]
+
+type FaqItem = (typeof faqItems)[number]
 
 const faqSchema = {
   '@context': 'https://schema.org',
@@ -296,7 +323,70 @@ export default function HomePage() {
     }
   }, [])
 
-  const [activeFaqIndex, setActiveFaqIndex] = useState(0)
+  const [activeFaqIndex, setActiveFaqIndex] = useState<number | null>(null)
+
+  const leftFaqs = faqItems.slice(0, 5)
+  const rightFaqs = faqItems.slice(5)
+
+  const toggleFaqItem = (index: number, event?: MouseEvent<HTMLButtonElement>) => {
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+    setActiveFaqIndex((prev) => (prev === index ? null : index))
+  }
+
+  const renderFaqColumn = (items: FaqItem[], offset: number) => (
+    <div className="flex flex-col space-y-6 xl:space-y-7">
+      {items.map((item, idx) => {
+        const actualIndex = offset + idx
+        const isOpen = activeFaqIndex === actualIndex
+
+        return (
+          <div
+            key={`${item.question}-${actualIndex}`}
+            className="relative overflow-hidden rounded-[30px] border border-border/60 bg-gradient-to-br from-background/95 via-background/70 to-primary/5 px-6 py-6 shadow-lg backdrop-blur transition hover:-translate-y-1.5 hover:shadow-2xl lg:px-8"
+          >
+            <div className="flex items-start gap-5">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-sm font-semibold text-primary">
+                {String(actualIndex + 1).padStart(2, '0')}
+              </div>
+              <div className="flex-1 space-y-4">
+                <div className="flex items-start gap-4">
+                  <button
+                    type="button"
+                    onClick={(event) => toggleFaqItem(actualIndex, event)}
+                    className="flex-1 text-left text-base font-semibold leading-snug text-foreground transition hover:text-primary"
+                    aria-expanded={isOpen}
+                  >
+                    {item.question}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(event) => toggleFaqItem(actualIndex, event)}
+                    aria-label="Toggle answer visibility"
+                    className={cn(
+                      'flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border text-lg font-semibold transition',
+                      isOpen
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-primary/40 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground'
+                    )}
+                  >
+                    +
+                  </button>
+                </div>
+                {isOpen ? (
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {item.answer}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
 
   const shouldReduceMotion = useReducedMotion()
   const animated = !shouldReduceMotion
@@ -414,9 +504,6 @@ export default function HomePage() {
                       <pre className="max-h-[320px] overflow-x-auto whitespace-pre font-mono text-xs leading-6">
                         {heroSampleSnippet}
                       </pre>
-                      <p className="mt-3 text-xs text-slate-400">
-                        Replace the placeholders with your sandbox credentials to preview the hosted checkout integration.
-                      </p>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-3">
                       {heroMetrics.map((metric, metricIdx) => (
@@ -651,8 +738,16 @@ export default function HomePage() {
           </div>
         </AnimatedSection>
 
-        <AnimatedSection className="bg-background py-20" delay={0.4}>
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <AnimatedSection className="relative overflow-hidden bg-background py-20" delay={0.4}>
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),transparent_45%)] dark:bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),transparent_45%)]" />
+            <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-primary/25 via-primary/5 to-transparent blur-3xl" />
+            <div className="absolute inset-y-0 left-1/4 h-64 w-64 -translate-y-6 rounded-full bg-blue-500/10 blur-[120px]" />
+            <div className="absolute inset-y-0 right-[-10%] h-72 w-72 rounded-full bg-purple-500/15 blur-[140px]" />
+            <div className="absolute inset-0 opacity-35" style={{ backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.06) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+            <div className="absolute inset-0 opacity-50" style={{ backgroundImage: 'radial-gradient(circle at 25% 25%, rgba(99,102,241,0.15), transparent 55%)' }} />
+          </div>
+          <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-10">
             <AnimatedDiv className="space-y-4 text-center" delay={0.45}>
               <Badge variant="outline" className="mx-auto w-fit rounded-full border-primary/40 bg-primary/5 text-primary">
                 Frequently asked
@@ -662,36 +757,13 @@ export default function HomePage() {
                 From certification timelines to webhook retries, we have detailed guides to keep you moving quickly.
               </p>
             </AnimatedDiv>
-            <div className="mt-10 grid gap-6 lg:grid-cols-[320px,1fr]">
-              <div className="rounded-3xl border border-border/60 bg-muted/30 p-4">
-                <ul className="space-y-2">
-                  {faqItems.map((item, idx) => {
-                    const isActive = idx === activeFaqIndex
-                    return (
-                      <li key={item.question}>
-                        <button
-                          type="button"
-                          onClick={() => setActiveFaqIndex(idx)}
-                          className={cn(
-                            'w-full rounded-2xl border px-4 py-3 text-left text-sm transition',
-                            isActive
-                              ? 'border-primary/30 bg-primary/10 text-primary'
-                              : 'border-transparent bg-background/70 text-foreground hover:border-border/60'
-                          )}
-                        >
-                          {item.question}
-                        </button>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
-              <div className="rounded-3xl border border-border/60 bg-background/90 p-6 shadow-sm">
-                <AnimatedDiv className="space-y-3" delay={0.55}>
-                  <h3 className="text-lg font-semibold text-foreground">{faqItems[activeFaqIndex].question}</h3>
-                  <p className="text-sm text-muted-foreground">{faqItems[activeFaqIndex].answer}</p>
-                </AnimatedDiv>
-              </div>
+            <div className="mt-12 grid gap-10 lg:grid-cols-2">
+              <AnimatedDiv delay={0.5} className="h-full">
+                {renderFaqColumn(leftFaqs, 0)}
+              </AnimatedDiv>
+              <AnimatedDiv delay={0.55} className="h-full">
+                {renderFaqColumn(rightFaqs, leftFaqs.length)}
+              </AnimatedDiv>
             </div>
           </div>
         </AnimatedSection>
