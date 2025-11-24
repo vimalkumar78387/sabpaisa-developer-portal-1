@@ -14,14 +14,14 @@ import {
 import Link from 'next/link'
 import { CodeBlock } from '@/components/ui/code-block'
 
-const stageCredentials = [
-  { label: 'Client Code', value: 'DJ020' },
-  { label: 'Username', value: 'DJL754@sp' },
-  { label: 'Password', value: '4q3qhgmJNM4m' },
-  { label: 'Authentication KEY', value: 'ISTrmmDC2bTvkxzlDRrVguVwetGS8xC/UFPsp6w+Itg' },
-  { label: 'Authentication IV', value: 'M+aUFgRMPq7ci+Cmoytp3KJ2GPBOwO72Z2Cjbr55zY7++pT9mLES2M5cIblnBta' },
-  { label: 'Endpoint URL', value: 'https://stage-securepay.sabpaisa.in/SabPaisa/sabPaisaInit' }
-]
+const stageCredentials = {
+  'Client Code': 'DJ020',
+  Username: 'DJL754@sp',
+  Password: '4q3qhgmJNM4m',
+  'Authentication KEY': 'ISTrmmDC2bTvkxzlDRrVguVwetGS8xC/UFPsp6w+Itg',
+  'Authentication IV': 'M+aUFgRMPq7ci+Cmoytp3KJ2GPBOwO72Z2Cjbr55zY7++pT9mLES2M5cIblnBta',
+  'Endpoint URL': 'https://stage-securepay.sabpaisa.in/SabPaisa/sabPaisaInit'
+}
 
 const testCards = [
   {
@@ -174,18 +174,18 @@ export default function StageOverviewPage() {
               </p>
               
               <div className="grid gap-4">
-                {stageCredentials.map((item) => (
-                  <Card key={item.label}>
+                {Object.entries(stageCredentials).map(([key, value]) => (
+                  <Card key={key}>
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <CardTitle className="text-lg">{item.label}</CardTitle>
-                          <CardDescription className="font-mono text-sm break-all">{item.value}</CardDescription>
+                          <CardTitle className="text-lg">{key}</CardTitle>
+                          <CardDescription className="font-mono text-sm">{value}</CardDescription>
                         </div>
-                        <Button
-                          variant="outline"
+                        <Button 
+                          variant="outline" 
                           size="sm"
-                          onClick={() => copyToClipboard(item.value)}
+                          onClick={() => copyToClipboard(value)}
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
@@ -198,13 +198,14 @@ export default function StageOverviewPage() {
               <div className="mt-8">
                 <h3 className="text-lg font-semibold mb-4">Environment Configuration</h3>
                 <CodeBlock
-                  code={`// Stage Credentials
-SABPAISA_CLIENT_CODE=${stageCredentials[0].value}
-SABPAISA_USERNAME=${stageCredentials[1].value}
-SABPAISA_PASSWORD=${stageCredentials[2].value}
-SABPAISA_AUTH_KEY=${stageCredentials[3].value}
-SABPAISA_AUTH_IV=${stageCredentials[4].value}
-SABPAISA_INIT_URL=${stageCredentials[5].value}`}
+                  code={`// Environment Variables
+SABPAISA_CLIENT_CODE=${stageCredentials['Client Code']}
+SABPAISA_USERNAME=${stageCredentials.Username}
+SABPAISA_PASSWORD=${stageCredentials.Password}
+SABPAISA_AUTH_KEY=${stageCredentials['Authentication KEY']}
+SABPAISA_AUTH_IV=${stageCredentials['Authentication IV']}
+SABPAISA_ENDPOINT_URL=${stageCredentials['Endpoint URL']}
+SABPAISA_ENVIRONMENT=stage`}
                   language="bash"
                   showLineNumbers={false}
                 />
