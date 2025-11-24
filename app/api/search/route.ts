@@ -99,11 +99,11 @@ const documentationContent: SearchableContent[] = [
   // Sandbox
   {
     id: 'sandbox',
-    title: 'Sandbox Environment',
-    content: 'Safe testing environment with test credentials, sample data, and mock responses. Test your integration without real transactions. Includes test cards, UPI IDs, and payment scenarios.',
+    title: 'Stage Overview',
+    content: 'Monitor stage-environment payment data, test credentials, and mock responses without touching production. Includes recommended test cards, UPI IDs, and scenario guides.',
     url: '/sandbox',
     category: 'Tools',
-    tags: ['sandbox', 'testing', 'test-credentials', 'mock-data', 'safe-environment']
+    tags: ['stage', 'sandbox', 'testing', 'test-credentials', 'mock-data']
   },
   // Changelog
   {

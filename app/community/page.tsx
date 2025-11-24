@@ -1,16 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { 
-  MessageSquare, 
-  Users, 
-  TrendingUp, 
+import { Textarea } from '@/components/ui/textarea'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { toast } from 'sonner'
+import {
+  MessageSquare,
+  Users,
+  TrendingUp,
   Search,
   Plus,
   Filter,
@@ -20,210 +23,16 @@ import {
   Eye,
   Calendar,
   Tag,
+  Crown,
+  Clock,
   HelpCircle,
   Lightbulb,
   Bug,
   Code,
   Settings,
-  Crown,
-  Clock
 } from 'lucide-react'
 import Link from 'next/link'
-
-interface ForumCategory {
-  id: string
-  name: string
-  description: string
-  icon: React.ComponentType<{ className?: string }>
-  color: string
-  postCount: number
-  lastActivity: string
-  moderators: string[]
-}
-
-interface ForumPost {
-  id: string
-  title: string
-  excerpt: string
-  author: {
-    name: string
-    avatar: string
-    role: 'developer' | 'moderator' | 'staff'
-    reputation: number
-  }
-  category: string
-  tags: string[]
-  createdAt: string
-  lastReply: string
-  replies: number
-  views: number
-  likes: number
-  status: 'open' | 'closed' | 'solved'
-  pinned?: boolean
-}
-
-const forumCategories: ForumCategory[] = [
-  {
-    id: 'qa',
-    name: 'Questions & Answers',
-    description: 'Get help with integration issues and technical questions',
-    icon: HelpCircle,
-    color: 'text-blue-600 bg-blue-100',
-    postCount: 1247,
-    lastActivity: '2 minutes ago',
-    moderators: ['SabPaisa Team', 'Community Moderators']
-  },
-  {
-    id: 'feature-requests',
-    name: 'Feature Requests',
-    description: 'Suggest new features and improvements',
-    icon: Lightbulb,
-    color: 'text-yellow-600 bg-yellow-100',
-    postCount: 89,
-    lastActivity: '1 hour ago',
-    moderators: ['Product Team']
-  },
-  {
-    id: 'bug-reports',
-    name: 'Bug Reports',
-    description: 'Report issues and bugs you encounter',
-    icon: Bug,
-    color: 'text-red-600 bg-red-100',
-    postCount: 156,
-    lastActivity: '30 minutes ago',
-    moderators: ['Engineering Team']
-  },
-  {
-    id: 'code-examples',
-    name: 'Code Examples',
-    description: 'Share and discuss integration code examples',
-    icon: Code,
-    color: 'text-green-600 bg-green-100',
-    postCount: 234,
-    lastActivity: '3 hours ago',
-    moderators: ['Developer Advocates']
-  },
-  {
-    id: 'general',
-    name: 'General Discussion',
-    description: 'General discussions about SabPaisa and payments',
-    icon: MessageSquare,
-    color: 'text-purple-600 bg-purple-100',
-    postCount: 567,
-    lastActivity: '15 minutes ago',
-    moderators: ['Community Team']
-  },
-  {
-    id: 'announcements',
-    name: 'Announcements',
-    description: 'Official announcements and updates',
-    icon: Settings,
-    color: 'text-indigo-600 bg-indigo-100',
-    postCount: 23,
-    lastActivity: '2 days ago',
-    moderators: ['SabPaisa Team']
-  }
-]
-
-const recentPosts: ForumPost[] = [
-  {
-    id: '1',
-    title: 'How to implement UPI AutoPay with SabPaisa?',
-    excerpt: 'I\'m trying to integrate UPI AutoPay for recurring payments but facing issues with mandate creation...',
-    author: {
-      name: 'dev_raj',
-      avatar: '/placeholder-avatar.jpg',
-      role: 'developer',
-      reputation: 245
-    },
-    category: 'qa',
-    tags: ['UPI', 'AutoPay', 'recurring-payments'],
-    createdAt: '2024-01-15T10:30:00Z',
-    lastReply: '2024-01-15T11:45:00Z',
-    replies: 3,
-    views: 127,
-    likes: 5,
-    status: 'open'
-  },
-  {
-    id: '2',
-    title: 'Webhook signature verification failing in production',
-    excerpt: 'The HMAC signature verification works in sandbox but fails in production environment...',
-    author: {
-      name: 'sarah_tech',
-      avatar: '/placeholder-avatar.jpg',
-      role: 'developer',
-      reputation: 892
-    },
-    category: 'qa',
-    tags: ['webhooks', 'security', 'production'],
-    createdAt: '2024-01-15T09:15:00Z',
-    lastReply: '2024-01-15T10:20:00Z',
-    replies: 7,
-    views: 234,
-    likes: 12,
-    status: 'solved'
-  },
-  {
-    id: '3',
-    title: 'Feature Request: Support for SEPA payments',
-    excerpt: 'It would be great to have SEPA payment method support for European customers...',
-    author: {
-      name: 'european_dev',
-      avatar: '/placeholder-avatar.jpg',
-      role: 'developer',
-      reputation: 156
-    },
-    category: 'feature-requests',
-    tags: ['SEPA', 'international', 'payments'],
-    createdAt: '2024-01-14T16:22:00Z',
-    lastReply: '2024-01-15T08:30:00Z',
-    replies: 15,
-    views: 445,
-    likes: 28,
-    status: 'open',
-    pinned: true
-  },
-  {
-    id: '4',
-    title: 'React Native SDK memory leak issue',
-    excerpt: 'Experiencing memory leaks when using the React Native SDK for multiple payment flows...',
-    author: {
-      name: 'mobile_expert',
-      avatar: '/placeholder-avatar.jpg',
-      role: 'developer',
-      reputation: 678
-    },
-    category: 'bug-reports',
-    tags: ['react-native', 'mobile', 'memory-leak'],
-    createdAt: '2024-01-14T14:10:00Z',
-    lastReply: '2024-01-15T07:45:00Z',
-    replies: 4,
-    views: 189,
-    likes: 8,
-    status: 'open'
-  },
-  {
-    id: '5',
-    title: 'Complete Node.js integration example with Express',
-    excerpt: 'Here\'s a complete working example of SabPaisa integration with Node.js and Express...',
-    author: {
-      name: 'sabpaisa_team',
-      avatar: '/placeholder-avatar.jpg',
-      role: 'staff',
-      reputation: 2450
-    },
-    category: 'code-examples',
-    tags: ['nodejs', 'express', 'integration'],
-    createdAt: '2024-01-13T11:30:00Z',
-    lastReply: '2024-01-15T06:15:00Z',
-    replies: 12,
-    views: 1205,
-    likes: 67,
-    status: 'open',
-    pinned: true
-  }
-]
+import { addCommunityPost, forumCategories, getCommunityPosts, subscribeToCommunityPosts, type ForumPost } from './data'
 
 const popularTags = [
   { name: 'payment-gateway', count: 324 },
@@ -240,8 +49,17 @@ export default function CommunityPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedTag, setSelectedTag] = useState('')
+  const discussions = useSyncExternalStore(subscribeToCommunityPosts, getCommunityPosts)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [titleValue, setTitleValue] = useState('')
+  const [bodyValue, setBodyValue] = useState('')
+  const [formCategory, setFormCategory] = useState(forumCategories[0]?.id ?? 'qa')
+  const [tagInput, setTagInput] = useState('')
+  const [formTags, setFormTags] = useState<string[]>([])
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const filteredPosts = recentPosts.filter(post => {
+  const filteredPosts = discussions.filter(post => {
     const matchesSearch = searchTerm === '' || 
       post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       post.excerpt.toLowerCase().includes(searchTerm.toLowerCase())
@@ -276,7 +94,91 @@ export default function CommunityPage() {
     }
   }
 
+  const resetForm = () => {
+    setTitleValue('')
+    setBodyValue('')
+    setFormCategory(forumCategories[0]?.id ?? 'qa')
+    setFormTags([])
+    setTagInput('')
+    setFormErrors({})
+  }
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {}
+    if (titleValue.trim().length < 15) {
+      errors.title = 'Title must be at least 15 characters long.'
+    }
+    if (bodyValue.trim().length < 30) {
+      errors.body = 'Body must be at least 30 characters long.'
+    }
+    if (formTags.length === 0) {
+      errors.tags = 'Add at least one tag.'
+    } else if (formTags.length > 5) {
+      errors.tags = 'You can specify up to 5 tags.'
+    }
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  const handleSubmitDiscussion = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!validateForm()) return
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch('/api/community/discussions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: titleValue.trim(),
+          body: bodyValue.trim(),
+          tags: formTags,
+          categoryId: formCategory,
+        }),
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        const message = payload?.message || 'Failed to create discussion.'
+        toast.error(message)
+        return
+      }
+
+      const createdPost: ForumPost = await response.json()
+      addCommunityPost(createdPost)
+      toast.success('Discussion published successfully')
+      setIsDialogOpen(false)
+      resetForm()
+    } catch (error) {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const suggestions = popularTags
+    .map((tag) => tag.name)
+    .filter((tag) => tag.toLowerCase().includes(tagInput.toLowerCase()) && !formTags.includes(tag))
+    .slice(0, 5)
+
+  const handleAddTag = (tag: string) => {
+    const normalized = tag.trim().toLowerCase()
+    if (!normalized || formTags.includes(normalized) || formTags.length >= 5) return
+    setFormTags((prev) => [...prev, normalized])
+    setTagInput('')
+  }
+
+  const handleTagInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter' || event.key === ',') {
+      event.preventDefault()
+      if (tagInput.trim()) {
+        handleAddTag(tagInput)
+      }
+    }
+  }
+
   return (
+    <>
     <div className="container mx-auto px-6 py-8">
       <div className="max-w-7xl">
         {/* Header */}
@@ -348,7 +250,7 @@ export default function CommunityPage() {
               <TabsTrigger value="categories">Categories</TabsTrigger>
               <TabsTrigger value="popular">Popular Tags</TabsTrigger>
             </TabsList>
-            <Button>
+            <Button onClick={() => setIsDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               New Discussion
             </Button>
@@ -584,5 +486,122 @@ export default function CommunityPage() {
         </Tabs>
       </div>
     </div>
+
+    <Dialog
+      open={isDialogOpen}
+      onOpenChange={(open) => {
+        setIsDialogOpen(open)
+        if (!open) {
+          resetForm()
+        }
+      }}
+    >
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Start a new discussion</DialogTitle>
+          <DialogDescription>
+            Provide enough context and details so the community can help you faster.
+          </DialogDescription>
+        </DialogHeader>
+        <form className="space-y-5" onSubmit={handleSubmitDiscussion}>
+          <div>
+            <label className="text-sm font-medium">Title</label>
+            <Input
+              value={titleValue}
+              onChange={(event) => setTitleValue(event.target.value)}
+              placeholder="Be specific and imagine you’re asking a question to another person."
+            />
+            {formErrors.title && <p className="mt-1 text-xs text-red-500">{formErrors.title}</p>}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Body</label>
+            <Textarea
+              rows={6}
+              value={bodyValue}
+              onChange={(event) => setBodyValue(event.target.value)}
+              placeholder="Include all the information someone would need to answer your question."
+            />
+            {formErrors.body && <p className="mt-1 text-xs text-red-500">{formErrors.body}</p>}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Category</label>
+            <select
+              className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+              value={formCategory}
+              onChange={(event) => setFormCategory(event.target.value)}
+            >
+              {forumCategories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Tags</label>
+            <Input
+              className="mt-1"
+              placeholder="Add up to 5 tags (e.g., windows, sql-server, swift)"
+              value={tagInput}
+              onChange={(event) => setTagInput(event.target.value)}
+              onKeyDown={handleTagInputKeyDown}
+            />
+            {suggestions.length > 0 && (
+              <div className="mt-2 rounded-md border bg-muted/40 p-2 text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">Suggestions:</span>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {suggestions.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      className="rounded-full border px-2 py-0.5 hover:bg-muted"
+                      onClick={() => handleAddTag(tag)}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="mt-2 flex flex-wrap gap-2">
+              {formTags.map((tag) => (
+                <Badge key={tag} variant="secondary" className="text-xs">
+                  {tag}
+                  <button
+                    type="button"
+                    className="ml-1 text-[10px]"
+                    onClick={() => setFormTags((prev) => prev.filter((item) => item !== tag))}
+                  >
+                    ✕
+                  </button>
+                </Badge>
+              ))}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Press Enter to add a tag. Maximum 5 tags.</p>
+            {formErrors.tags && <p className="text-xs text-red-500">{formErrors.tags}</p>}
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setIsDialogOpen(false)
+                resetForm()
+              }}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Posting…' : 'Post to Community'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }

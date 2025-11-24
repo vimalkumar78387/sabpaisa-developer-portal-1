@@ -53,7 +53,7 @@ export default function PlaygroundErrorPage({ error, reset }: PlaygroundErrorPag
             <Button asChild size="sm">
               <Link href="/sandbox">
                 <Settings className="mr-2 h-4 w-4" />
-                Try Sandbox
+                View Stage Overview
               </Link>
             </Button>
           </div>

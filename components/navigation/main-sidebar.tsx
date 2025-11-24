@@ -150,7 +150,7 @@ const navigationItems: NavItem[] = [
     href: '/playground'
   },
   {
-    title: 'Sandbox',
+    title: 'Stage Overview',
     icon: Zap,
     href: '/sandbox'
   },

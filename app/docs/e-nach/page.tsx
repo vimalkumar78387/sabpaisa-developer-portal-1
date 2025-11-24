@@ -8,10 +8,7 @@ import {
   Shield, 
   Calendar, 
   CheckCircle,
-  AlertCircle,
-  Code,
-  Play,
-  ArrowRight
+  AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -119,52 +116,6 @@ export default function ENachPage() {
         </div>
 
         <Separator className="my-12" />
-
-        {/* Testing & Documentation */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-semibold mb-6">Testing & Resources</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Play className="h-5 w-5" />
-                  Test E-NACH APIs
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="mb-4">
-                  Test E-NACH mandate creation and debit processing in our interactive playground.
-                </CardDescription>
-                <Button asChild>
-                  <Link href="/playground?tab=enach">
-                    Test APIs
-                    <Play className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Code className="h-5 w-5" />
-                  Integration Guide
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="mb-4">
-                  Step-by-step integration guide for different platforms and frameworks.
-                </CardDescription>
-                <Button asChild variant="outline">
-                  <Link href="/docs/integration/server">
-                    View Integration
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
 
         {/* Best Practices */}
         <div className="mb-12">
