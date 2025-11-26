@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useSyncExternalStore } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -26,13 +26,14 @@ import {
   Crown,
   Clock,
   HelpCircle,
-  Lightbulb,
-  Bug,
-  Code,
-  Settings,
+  FileText,
+  AlignLeft,
+  Folder,
+  Hash,
 } from 'lucide-react'
 import Link from 'next/link'
-import { addCommunityPost, forumCategories, getCommunityPosts, subscribeToCommunityPosts, type ForumPost } from './data'
+import type { ForumPost } from './types'
+import { forumCategories } from './constants'
 
 const popularTags = [
   { name: 'payment-gateway', count: 324 },
@@ -49,15 +50,45 @@ export default function CommunityPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedTag, setSelectedTag] = useState('')
-  const discussions = useSyncExternalStore(subscribeToCommunityPosts, getCommunityPosts)
+  const [discussions, setDiscussions] = useState<ForumPost[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('discussions')
   const [titleValue, setTitleValue] = useState('')
   const [bodyValue, setBodyValue] = useState('')
+  const [clientCodeValue, setClientCodeValue] = useState('')
   const [formCategory, setFormCategory] = useState(forumCategories[0]?.id ?? 'qa')
   const [tagInput, setTagInput] = useState('')
   const [formTags, setFormTags] = useState<string[]>([])
   const [formErrors, setFormErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    const loadDiscussions = async () => {
+      try {
+        const response = await fetch('/api/community/discussions')
+        if (!response.ok) {
+          throw new Error('Failed to load discussions')
+        }
+        const payload: ForumPost[] = await response.json()
+        setDiscussions((prev) => {
+          if (prev.length === 0) return payload
+          const merged = new Map<string, ForumPost>()
+          for (const post of [...payload, ...prev]) {
+            merged.set(post.id, post)
+          }
+          return Array.from(merged.values()).sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
+        })
+      } catch (error) {
+        toast.error('Unable to load discussions. Please refresh.')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadDiscussions()
+  }, [])
 
   const filteredPosts = discussions.filter(post => {
     const matchesSearch = searchTerm === '' || 
@@ -69,6 +100,27 @@ export default function CommunityPage() {
 
     return matchesSearch && matchesCategory && matchesTag
   })
+
+  const categoryCounts = discussions.reduce<Record<string, number>>((acc, post) => {
+    acc[post.category] = (acc[post.category] ?? 0) + 1
+    return acc
+  }, {})
+
+  const tagCounts = discussions.reduce<Record<string, number>>((acc, post) => {
+    post.tags.forEach((tag) => {
+      acc[tag] = (acc[tag] ?? 0) + 1
+    })
+    return acc
+  }, {})
+
+  const popularTagList = Object.entries(tagCounts).sort((a, b) => b[1] - a[1])
+
+  const activeDevelopersCount = new Set(discussions.map((post) => post.author.name)).size
+  const totalDiscussions = discussions.length
+  const solvedCount = discussions.filter((post) => post.status === 'solved').length
+  const respondedCount = discussions.filter((post) => post.replies > 0).length
+  const responseRate = totalDiscussions === 0 ? 0 : Math.round((respondedCount / totalDiscussions) * 100)
+  const formatNumber = (value: number) => value.toLocaleString('en-IN')
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -97,6 +149,7 @@ export default function CommunityPage() {
   const resetForm = () => {
     setTitleValue('')
     setBodyValue('')
+    setClientCodeValue('')
     setFormCategory(forumCategories[0]?.id ?? 'qa')
     setFormTags([])
     setTagInput('')
@@ -116,6 +169,10 @@ export default function CommunityPage() {
     } else if (formTags.length > 5) {
       errors.tags = 'You can specify up to 5 tags.'
     }
+    const trimmedClientCode = clientCodeValue.trim().toUpperCase()
+    if (!/^[A-Z0-9]{4,7}$/.test(trimmedClientCode)) {
+      errors.clientCode = 'Invalid'
+    }
     setFormErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -134,6 +191,7 @@ export default function CommunityPage() {
           body: bodyValue.trim(),
           tags: formTags,
           categoryId: formCategory,
+          clientCode: clientCodeValue.trim().toUpperCase(),
         }),
       })
 
@@ -145,7 +203,12 @@ export default function CommunityPage() {
       }
 
       const createdPost: ForumPost = await response.json()
-      addCommunityPost(createdPost)
+      setDiscussions((prev) => {
+        if (prev.some((post) => post.id === createdPost.id)) {
+          return prev
+        }
+        return [createdPost, ...prev]
+      })
       toast.success('Discussion published successfully')
       setIsDialogOpen(false)
       resetForm()
@@ -201,49 +264,49 @@ export default function CommunityPage() {
             <CardContent className="pt-6">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-blue-600" />
-                <div>
-                  <div className="text-2xl font-bold">12,489</div>
-                  <div className="text-sm text-muted-foreground">Active Developers</div>
+                  <div>
+                    <div className="text-2xl font-bold">{formatNumber(activeDevelopersCount)}</div>
+                    <div className="text-sm text-muted-foreground">Active Developers</div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-green-600" />
-                <div>
-                  <div className="text-2xl font-bold">2,316</div>
-                  <div className="text-sm text-muted-foreground">Total Discussions</div>
+                  <div>
+                    <div className="text-2xl font-bold">{formatNumber(totalDiscussions)}</div>
+                    <div className="text-sm text-muted-foreground">Total Discussions</div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2">
                 <HelpCircle className="h-5 w-5 text-purple-600" />
-                <div>
-                  <div className="text-2xl font-bold">1,847</div>
-                  <div className="text-sm text-muted-foreground">Questions Solved</div>
+                  <div>
+                    <div className="text-2xl font-bold">{formatNumber(solvedCount)}</div>
+                    <div className="text-sm text-muted-foreground">Questions Solved</div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-orange-600" />
-                <div>
-                  <div className="text-2xl font-bold">94%</div>
-                  <div className="text-sm text-muted-foreground">Response Rate</div>
+                  <div>
+                    <div className="text-2xl font-bold">{responseRate}%</div>
+                    <div className="text-sm text-muted-foreground">Response Rate</div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
         </div>
 
-        <Tabs defaultValue="discussions" className="w-full">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value)} className="w-full">
           <div className="flex items-center justify-between mb-6">
             <TabsList>
               <TabsTrigger value="discussions">Discussions</TabsTrigger>
@@ -307,6 +370,13 @@ export default function CommunityPage() {
 
             {/* Discussion List */}
             <div className="space-y-4">
+              {isLoading && (
+                <Card>
+                  <CardContent className="py-12 text-center text-muted-foreground">
+                    Loading discussions…
+                  </CardContent>
+                </Card>
+              )}
               {filteredPosts.map((post) => (
                 <Card key={post.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="pt-6">
@@ -379,7 +449,7 @@ export default function CommunityPage() {
               ))}
             </div>
 
-            {filteredPosts.length === 0 && (
+            {!isLoading && filteredPosts.length === 0 && (
               <Card>
                 <CardContent className="text-center py-12">
                   <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -396,7 +466,14 @@ export default function CommunityPage() {
           <TabsContent value="categories" className="grid gap-6">
             <div className="grid md:grid-cols-2 gap-6">
               {forumCategories.map((category) => (
-                <Card key={category.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                <Card
+                  key={category.id}
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => {
+                    setSelectedCategory(category.id)
+                    setActiveTab('discussions')
+                  }}
+                >
                   <CardHeader>
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-lg ${category.color}`}>
@@ -406,7 +483,7 @@ export default function CommunityPage() {
                         <CardTitle className="text-lg">{category.name}</CardTitle>
                         <CardDescription>{category.description}</CardDescription>
                       </div>
-                      <Badge variant="secondary">{category.postCount}</Badge>
+                      <Badge variant="secondary">{categoryCounts[category.id] ?? 0}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -430,23 +507,30 @@ export default function CommunityPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-3">
-                  {popularTags.map((tag) => (
-                    <Button
-                      key={tag.name}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedTag(tag.name)}
-                      className="flex items-center gap-2"
-                    >
-                      <Tag className="h-3 w-3" />
-                      {tag.name}
-                      <Badge variant="secondary" className="ml-1 text-xs">
-                        {tag.count}
-                      </Badge>
-                    </Button>
-                  ))}
-                </div>
+                {popularTagList.length > 0 ? (
+                  <div className="flex flex-wrap gap-3">
+                    {popularTagList.map(([tagName, count]) => (
+                      <Button
+                        key={tagName}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedTag(tagName)
+                          setActiveTab('discussions')
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <Tag className="h-3 w-3" />
+                        {tagName}
+                        <Badge variant="secondary" className="ml-1 text-xs">
+                          {count}
+                        </Badge>
+                      </Button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No tags have been used yet.</p>
+                )}
               </CardContent>
             </Card>
 
@@ -496,98 +580,154 @@ export default function CommunityPage() {
         }
       }}
     >
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Start a new discussion</DialogTitle>
           <DialogDescription>
             Provide enough context and details so the community can help you faster.
           </DialogDescription>
         </DialogHeader>
-        <form className="space-y-5" onSubmit={handleSubmitDiscussion}>
-          <div>
-            <label className="text-sm font-medium">Title</label>
-            <Input
-              value={titleValue}
-              onChange={(event) => setTitleValue(event.target.value)}
-              placeholder="Be specific and imagine you’re asking a question to another person."
-            />
-            {formErrors.title && <p className="mt-1 text-xs text-red-500">{formErrors.title}</p>}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Body</label>
-            <Textarea
-              rows={6}
-              value={bodyValue}
-              onChange={(event) => setBodyValue(event.target.value)}
-              placeholder="Include all the information someone would need to answer your question."
-            />
-            {formErrors.body && <p className="mt-1 text-xs text-red-500">{formErrors.body}</p>}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Category</label>
-            <select
-              className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
-              value={formCategory}
-              onChange={(event) => setFormCategory(event.target.value)}
-            >
-              {forumCategories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Tags</label>
-            <Input
-              className="mt-1"
-              placeholder="Add up to 5 tags (e.g., windows, sql-server, swift)"
-              value={tagInput}
-              onChange={(event) => setTagInput(event.target.value)}
-              onKeyDown={handleTagInputKeyDown}
-            />
-            {suggestions.length > 0 && (
-              <div className="mt-2 rounded-md border bg-muted/40 p-2 text-xs text-muted-foreground">
-                <span className="font-medium text-foreground">Suggestions:</span>
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {suggestions.map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      className="rounded-full border px-2 py-0.5 hover:bg-muted"
-                      onClick={() => handleAddTag(tag)}
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div className="mt-2 flex flex-wrap gap-2">
-              {formTags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs">
-                  {tag}
-                  <button
-                    type="button"
-                    className="ml-1 text-[10px]"
-                    onClick={() => setFormTags((prev) => prev.filter((item) => item !== tag))}
-                  >
-                    ✕
-                  </button>
-                </Badge>
-              ))}
+        <form className="space-y-6" onSubmit={handleSubmitDiscussion}>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-xl border bg-muted/30 p-4">
+              <h4 className="text-sm font-semibold text-muted-foreground">Quick Tips</h4>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Keep your question focused, describe the context, and choose the category that best fits your challenge.
+              </p>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">Press Enter to add a tag. Maximum 5 tags.</p>
-            {formErrors.tags && <p className="text-xs text-red-500">{formErrors.tags}</p>}
+            <div className="rounded-xl border bg-background p-4 shadow-sm">
+              <h4 className="text-sm font-semibold text-muted-foreground">Submission Checklist</h4>
+              <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                <li>⬩ Title ≥ 15 characters</li>
+                <li>⬩ Body ≥ 30 characters</li>
+                <li>⬩ Tags: up to 5, use keywords</li>
+                <li>⬩ Client Code: SabPaisa reference</li>
+              </ul>
+            </div>
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="space-y-5">
+            <div className="rounded-xl border bg-background/80 p-4 shadow-sm">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <FileText className="h-4 w-4 text-primary" />
+                <span>Title</span>
+              </div>
+              <Input
+                className="mt-2"
+                value={titleValue}
+                onChange={(event) => setTitleValue(event.target.value)}
+                placeholder="Be specific and imagine you’re asking a question to another person."
+              />
+              {formErrors.title && <p className="mt-1 text-xs text-red-500">{formErrors.title}</p>}
+            </div>
+
+            <div className="rounded-xl border bg-background/80 p-4 shadow-sm">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <AlignLeft className="h-4 w-4 text-primary" />
+                <span>Body</span>
+              </div>
+              <Textarea
+                className="mt-2"
+                rows={6}
+                value={bodyValue}
+                onChange={(event) => setBodyValue(event.target.value)}
+                placeholder="Include all the information someone would need to answer your question."
+              />
+              {formErrors.body && <p className="mt-1 text-xs text-red-500">{formErrors.body}</p>}
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-xl border bg-background/80 p-4 shadow-sm">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Folder className="h-4 w-4 text-primary" />
+                  <span>Category</span>
+                </div>
+                <select
+                  className="mt-2 w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={formCategory}
+                  onChange={(event) => setFormCategory(event.target.value)}
+                >
+                  {forumCategories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="rounded-xl border bg-background/80 p-4 shadow-sm">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Hash className="h-4 w-4 text-primary" />
+                  <span>Client Code (Provided by SabPaisa)</span>
+                </div>
+                <Input
+                  className="mt-2"
+                  value={clientCodeValue}
+                  onChange={(event) => setClientCodeValue(event.target.value.toUpperCase())}
+                  placeholder="Enter the 4-7 character client code"
+                  inputMode="text"
+                  maxLength={7}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Enter the SabPaisa-issued client code.
+                </p>
+                {formErrors.clientCode && <p className="text-xs text-red-500">{formErrors.clientCode}</p>}
+              </div>
+            </div>
+
+            <div className="rounded-xl border bg-background/80 p-4 shadow-sm">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Tag className="h-4 w-4 text-primary" />
+                <span>Tags</span>
+              </div>
+              <Input
+                className="mt-2"
+                placeholder="Add up to 5 tags (e.g., windows, sql-server, swift)"
+                value={tagInput}
+                onChange={(event) => setTagInput(event.target.value)}
+                onKeyDown={handleTagInputKeyDown}
+              />
+              {suggestions.length > 0 && (
+                <div className="mt-2 rounded-md border bg-muted/40 p-2 text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">Suggestions:</span>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {suggestions.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        className="rounded-full border px-2 py-0.5 hover:bg-muted"
+                        onClick={() => handleAddTag(tag)}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="mt-2 flex flex-wrap gap-2">
+                {formTags.map((tag) => (
+                  <Badge key={tag} variant="secondary" className="text-xs">
+                    {tag}
+                    <button
+                      type="button"
+                      className="ml-1 text-[10px]"
+                      onClick={() => setFormTags((prev) => prev.filter((item) => item !== tag))}
+                    >
+                      ✕
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">Press Enter to add a tag. Maximum 5 tags.</p>
+              {formErrors.tags && <p className="text-xs text-red-500">{formErrors.tags}</p>}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="ghost"
+              className="w-full sm:w-auto"
               onClick={() => {
                 setIsDialogOpen(false)
                 resetForm()
@@ -595,7 +735,7 @@ export default function CommunityPage() {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
               {isSubmitting ? 'Posting…' : 'Post to Community'}
             </Button>
           </div>

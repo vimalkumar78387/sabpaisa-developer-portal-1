@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server'
-import { addCommunityPost, type ForumPost } from '@/app/community/data'
+import { addCommunityPost, getCommunityPosts } from '@/app/community/data'
+
+export async function GET() {
+  try {
+    const posts = await getCommunityPosts()
+    return NextResponse.json(posts)
+  } catch (error) {
+    console.error('Failed to load community discussions', error)
+    return NextResponse.json({ message: 'Failed to load discussions.' }, { status: 500 })
+  }
+}
 
 export async function POST(request: Request) {
   try {
-    const { title, body, tags, categoryId } = await request.json()
+    const { title, body, tags, categoryId, clientCode } = await request.json()
 
     if (typeof title !== 'string' || title.trim().length < 15) {
       return NextResponse.json({ message: 'Title must be at least 15 characters.' }, { status: 400 })
@@ -13,36 +23,45 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Body must be at least 30 characters.' }, { status: 400 })
     }
 
-    if (!Array.isArray(tags) || tags.length === 0 || tags.length > 5) {
+    if (!Array.isArray(tags)) {
       return NextResponse.json({ message: 'Provide between 1 and 5 tags.' }, { status: 400 })
     }
 
-    const now = new Date().toISOString()
-    const newPost: ForumPost = {
-      id: String(Date.now()),
-      title: title.trim(),
-      excerpt: body.trim().slice(0, 140) + (body.trim().length > 140 ? '…' : ''),
-      content: body.trim(),
-      author: {
-        name: 'You',
-        avatar: '/placeholder-avatar.jpg',
-        role: 'developer',
-        reputation: 1,
-      },
-      category: categoryId || 'qa',
-      tags: tags.slice(0, 5).map((tag: string) => tag.toLowerCase()),
-      createdAt: now,
-      lastReply: now,
-      replies: 0,
-      views: 0,
-      likes: 0,
-      status: 'open',
+    const normalizedTags = tags
+      .map((tag: string) => tag?.trim().toLowerCase())
+      .filter(Boolean)
+
+    if (normalizedTags.length === 0 || normalizedTags.length > 5) {
+      return NextResponse.json({ message: 'Provide between 1 and 5 tags.' }, { status: 400 })
     }
 
-    addCommunityPost(newPost)
+    if (typeof clientCode !== 'string') {
+      return NextResponse.json({ message: 'Client Code is required.' }, { status: 400 })
+    }
 
-    return NextResponse.json(newPost, { status: 201 })
+    const normalizedClientCode = clientCode.trim().toUpperCase()
+    if (!/^[A-Z0-9]{4,7}$/.test(normalizedClientCode)) {
+      return NextResponse.json(
+        { message: 'Invalid client code.' },
+        { status: 400 }
+      )
+    }
+
+    const createdPost = await addCommunityPost({
+      title: title.trim(),
+      body: body.trim(),
+      tags: normalizedTags,
+      categoryId: typeof categoryId === 'string' && categoryId ? categoryId : 'qa',
+      userId: null,
+      clientCode: normalizedClientCode,
+    })
+
+    return NextResponse.json(createdPost, { status: 201 })
   } catch (error) {
-    return NextResponse.json({ message: 'Invalid request payload.' }, { status: 400 })
+    console.error('Failed to create discussion', error)
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ message: 'Invalid request payload.' }, { status: 400 })
+    }
+    return NextResponse.json({ message: 'Failed to create discussion.' }, { status: 500 })
   }
 }

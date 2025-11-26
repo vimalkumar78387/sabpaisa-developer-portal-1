@@ -4,26 +4,29 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { findCommunityPost, getAnswersForPost, type ForumAnswer } from '../../data'
-import { Calendar, ThumbsUp, ArrowLeft } from 'lucide-react'
+import { findCommunityPost, getAnswersForPost } from '../../data'
+import type { ForumAnswer } from '../../types'
+import { Calendar, ArrowLeft } from 'lucide-react'
 import { AddAnswerForm } from '@/components/community/add-answer-form'
+import { AnswerList } from '@/components/community/answer-list'
 
 interface CommunityPostPageProps {
-  params: {
+  params: Promise<{
     postId: string
-  }
+  }>
 }
 
 const formatDate = (timestamp: string) =>
   new Date(timestamp).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
 
-export default function CommunityPostPage({ params }: CommunityPostPageProps) {
-  const post = findCommunityPost(params.postId)
+export default async function CommunityPostPage({ params }: CommunityPostPageProps) {
+  const { postId } = await params
+  const post = await findCommunityPost(postId)
   if (!post) {
     notFound()
   }
 
-  const answers: ForumAnswer[] = getAnswersForPost(post!.id)
+  const answers: ForumAnswer[] = await getAnswersForPost(post!.id)
 
   return (
     <div className="container mx-auto px-6 py-8">
@@ -71,43 +74,7 @@ export default function CommunityPostPage({ params }: CommunityPostPageProps) {
               <CardDescription>Most helpful responses from the community</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {answers.length === 0 && (
-                <p className="text-sm text-muted-foreground">No answers yet. Be the first to respond!</p>
-              )}
-
-              {answers.map((answer) => (
-                <div key={answer.id} className="rounded-xl border p-4">
-                  <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={`https://placehold.co/40x40/6366f1/ffffff?text=${answer.author.name[0].toUpperCase()}`} />
-                        <AvatarFallback>{answer.author.name[0].toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium text-foreground">{answer.author.name}</p>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <span className="uppercase text-[10px] tracking-wide">{answer.author.role}</span>
-                          <span>• {answer.author.reputation} rep</span>
-                        </div>
-                      </div>
-                    </div>
-                    <span>{formatDate(answer.createdAt)}</span>
-                  </div>
-
-                  <p className="text-sm text-foreground">{answer.content}</p>
-
-                  <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <ThumbsUp className="h-3 w-3" />
-                      <span>{answer.likes} helpful</span>
-                    </div>
-                    {answer.isAccepted && (
-                      <Badge variant="secondary" className="text-xs">Accepted</Badge>
-                    )}
-                  </div>
-                </div>
-              ))}
-
+              <AnswerList answers={answers} postId={post!.id} />
               <AddAnswerForm questionTitle={post!.title} postId={post!.id} />
             </CardContent>
           </Card>
